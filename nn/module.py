@@ -1,6 +1,6 @@
 import numpy as np
 from collections import OrderedDict
-from parameter import Parameter
+from .parameter import Parameter
 
 
 class Module():
