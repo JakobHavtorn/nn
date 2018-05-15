@@ -17,7 +17,7 @@ class Linear(Module):
         self.reset_parameters()
 
     def __str__(self): 
-        return "Linear({d}, {d})".format(self.in_features, self.out_features)
+        return "Linear({d}, {d}, bias={})".format(self.in_features, self.out_features, self.b is not None)
 
     def reset_parameters(self):
         stdv = 1.0 / np.sqrt(self.W.shape[1])
