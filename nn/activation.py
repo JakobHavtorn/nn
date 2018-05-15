@@ -1,7 +1,8 @@
 import numpy as np
+from .module import Module
 
 
-class Sigmoid():
+class Sigmoid(Module):
     def __str__(self): 
         return "Sigmoid()"
     
@@ -17,7 +18,7 @@ class Sigmoid():
         pass
     
 
-class Tanh():
+class Tanh(Module):
     def __str__(self):
         return "Tanh()"
 
@@ -32,7 +33,7 @@ class Tanh():
         pass
 
 
-class ReLU():
+class ReLU(Module):
     def __str__(self):
         return "ReLU()"
 
@@ -47,7 +48,7 @@ class ReLU():
         pass
     
 
-class Softplus():
+class Softplus(Module):
     def __str__(self):
         return "Softplus()"
 
@@ -63,7 +64,7 @@ class Softplus():
         pass
 
 
-class Softmax():
+class Softmax(Module):
     def __str__(self): 
         return "Softmax()"
     
