@@ -1,6 +1,7 @@
 import numpy as np
 from .module import Module
 from .parameter import Parameter
+import IPython
 
 
 class Linear(Module):
@@ -8,7 +9,7 @@ class Linear(Module):
         super(Linear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.W = Parameter(np.zeros(in_features, out_features))
+        self.W = Parameter(np.zeros([in_features, out_features]))
         if bias:
             self.b = Parameter(np.zeros(out_features))
         else:
@@ -19,10 +20,10 @@ class Linear(Module):
         return "Linear({d}, {d})".format(self.in_features, self.out_features)
 
     def reset_parameters(self):
-        stdv = 1.0 / np.sqrt(self.W.data.shape[1])
-        self.W.data = np.random.uniform(-stdv, stdv, self.W.data.shape)
+        stdv = 1.0 / np.sqrt(self.W.shape[1])
+        self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
         if self.b is not None:
-            self.b.data = np.zeros(self.b.data.shape)
+            self.b.data = np.zeros(self.b.shape)
 
     def forward(self, x, *args):
         self.x = x
