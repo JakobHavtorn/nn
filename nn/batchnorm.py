@@ -4,8 +4,6 @@ from .parameter import Parameter
 
 
 class BatchNorm1D(Module):
-    "https://wiseodd.github.io/techblog/2016/07/04/batchnorm/"
-    
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True):
         super(BatchNorm1D, self).__init__()
         self.num_features = num_features
@@ -37,7 +35,7 @@ class BatchNorm1D(Module):
 
     def reset_parameters(self):
         if self.affine:
-            self.gamma.data = np.random.uniform(self.gamma.shape)
+            self.gamma.data = np.random.uniform(size=self.gamma.shape)
             self.beta.data = np.zeros(self.beta.shape)
         self.reset_running_stats()
 
@@ -50,7 +48,7 @@ class BatchNorm1D(Module):
             self.batch_var = np.var(x, axis=0)
             self.x_norm = (x - self.batch_mean) / np.sqrt(self.batch_var + self.eps)
             if self.affine:
-                x_out = self.x_norm * self.gamma + self.beta
+                x_out = self.x_norm * self.gamma.data + self.beta.data
             else:
                 x_out = self.x_norm
             # Update running mean and variance
@@ -68,7 +66,7 @@ class BatchNorm1D(Module):
         else:
             x_norm = (x - self.running_mean) / np.sqrt(self.running_var)
             if self.affine:
-                x_out = x_norm * self.gamma + self.beta
+                x_out = x_norm * self.gamma.data + self.beta.data
             else:
                 x_out = x_norm
         return x_out
