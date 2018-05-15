@@ -1,10 +1,10 @@
 import numpy as np
 from collections import OrderedDict
 from .parameter import Parameter
-
+import IPython
 
 class Module():
-    def __init___(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self._modules = OrderedDict()
         self._parameters = OrderedDict()
         self._buffers = OrderedDict()
@@ -22,11 +22,19 @@ class Module():
         """
         self.train(mode=False)
 
-    def _add_module(self, name, module):
-        pass
-
-    def _register_parameter(self, name, parameter):
-        pass
+    def add_module(self, name, module):
+        """Adds a child module to the current module.
+        """
+        if not isinstance(module, Module) and module is not None:
+            raise TypeError("{} is not a Module subclass".format(
+                type(module)))
+        elif hasattr(self, name) and name not in self._modules:
+            raise KeyError("attribute '{}' already exists".format(name))
+        elif '.' in name:
+            raise KeyError("module name can't contain \".\"")
+        elif name == '':
+            raise KeyError("module name can't be empty string \"\"")
+        self._modules[name] = module
 
     def named_modules(self, memo=None, prefix=''):
         """Returns an iterator over all modules in the network, yielding
@@ -134,6 +142,22 @@ class Module():
                             .format(type(param), name))
         else:
             self._parameters[name] = param
+
+    def __getattr__(self, name):
+        if '_parameters' in self.__dict__:
+            _parameters = self.__dict__['_parameters']
+            if name in _parameters:
+                return _parameters[name]
+        if '_buffers' in self.__dict__:
+            _buffers = self.__dict__['_buffers']
+            if name in _buffers:
+                return _buffers[name]
+        if '_modules' in self.__dict__:
+            modules = self.__dict__['_modules']
+            if name in modules:
+                return modules[name]
+        raise AttributeError("'{}' object has no attribute '{}'".format(
+            type(self).__name__, name))
 
     def __setattr__(self, name, value):
         def remove_from(*dicts):
