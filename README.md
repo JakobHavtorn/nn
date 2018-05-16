@@ -4,8 +4,6 @@ This is an implementation of some common neural network architectural modules us
 
 The overall modular structure is inspired by that of [PyTorch](https://pytorch.org/). All network modules are children of a parent `Module`(https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module). Both layers, such as linear, convolutional, and recurrent, and nonlinear activation functions are implemented as subclasses of the Module class. Network models are also instantiated as subclasses of the `Module` class and hold their layers and activation functions as attributes, effectively forming a graph.
 
-Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/). The batch normalization layer has been inspired by (https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py).
-
 ## Implemented modules
 Currently implemented modules are
 - Linear layers
@@ -73,3 +71,10 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
+
+## Sources
+- Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
+- The batch normalization layer has been inspired by (https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py). 
+- The convolutional layer has been inspired by (https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/)
+- The recurrent LSTM unit has been inspired by (http://blog.varunajayasiri.com/numpy_lstm.html).
+- See also (https://github.com/wiseodd/hipsternet)
