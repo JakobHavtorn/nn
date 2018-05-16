@@ -1,6 +1,7 @@
-import numpy as np
-from .module import Module
 import IPython
+import numpy as np
+
+from .module import Module
 
 
 class MeanSquaredLoss(Module):
@@ -36,7 +37,6 @@ class CrossEntropyLoss(Module):
     
     def forward(self, y, t, eps=1e-8):
         return - np.mean(np.log(y[t] + eps), axis=-1)
-        # return np.mean(np.sum(-t * np.log(y + eps), axis=-1))
         
     def backward(self, y, t):
         delta_out = (1.0 / y.shape[0]) * (y - t)

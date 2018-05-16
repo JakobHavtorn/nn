@@ -1,7 +1,6 @@
-import sys
 import os
+import sys
 import time
-import IPython
 
 
 class ProgressBar(object):
@@ -110,4 +109,3 @@ if __name__ == '__main__':
     pb.end()
     print("Now we are done!")
     IPython.embed()
-    

@@ -1,6 +1,6 @@
 import numpy as np
+
 from .module import Module
-import IPython
 
 
 class Sigmoid(Module):

@@ -17,5 +17,3 @@ class Optimizer(object):
 
     def step(self):
         raise NotImplementedError()
-
-    

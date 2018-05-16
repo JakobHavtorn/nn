@@ -1,7 +1,10 @@
-import numpy as np
 from collections import OrderedDict
-from .parameter import Parameter
+
 import IPython
+import numpy as np
+
+from .parameter import Parameter
+
 
 class Module():
     def __init__(self, *args, **kwargs):
@@ -219,4 +222,3 @@ class Module():
 
     def backward(self, delta_in, *args):
         raise NotImplementedError()
-    

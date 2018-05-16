@@ -1,7 +1,8 @@
+import IPython
 import numpy as np
+
 from .module import Module
 from .parameter import Parameter
-import IPython
 
 
 class Linear(Module):
