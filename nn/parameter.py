@@ -20,3 +20,8 @@ class Parameter(object):
     @property
     def shape(self):
         return self.data.shape
+
+    def copy(self):
+        p = Parameter(self.data)
+        p.grad = self.grad
+        return p
