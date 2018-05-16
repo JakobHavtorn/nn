@@ -1,5 +1,6 @@
 import numpy as np
 from .module import Module
+import IPython
 
 
 class Sigmoid(Module):
@@ -10,8 +11,8 @@ class Sigmoid(Module):
         self.a = 1.0 / (1 + np.exp(-x))
         return self.a
         
-    def backward(self, delta_in):
-        delta_out = self.a * (1 - self.a) * delta_in
+    def backward(self, din):
+        delta_out = self.a * (1 - self.a) * din
         return delta_out
         
     def update_params(self, lr):
@@ -26,8 +27,8 @@ class Tanh(Module):
         self.a = np.tanh(x)
         return self.a
 
-    def backward(self, delta_in):
-        return (1 - self.a ** 2) * delta_in
+    def backward(self, din):
+        return (1 - self.a ** 2) * din
 
     def update_params(self, lr):
         pass
@@ -41,8 +42,8 @@ class ReLU(Module):
         self.a = np.maximum(0, x)
         return self.a
         
-    def backward(self, delta_in):
-        return delta_in * (self.a > 0).astype(self.a.dtype)
+    def backward(self, din):
+        return din * (self.a > 0).astype(self.a.dtype)
         
     def update_params(self, lr):
         pass
@@ -57,8 +58,8 @@ class Softplus(Module):
         self.a = np.log(g)
         return self.a
 
-    def backward(self, delta_in):
-        return delta_in * 1 - self.g ** (-1)
+    def backward(self, din):
+        return din * 1 - self.g ** (-1)
 
     def update_params(self, lr):
         pass
@@ -69,13 +70,13 @@ class Softmax(Module):
         return "Softmax()"
     
     def forward(self, x):
-        x_exp = np.exp(x)
-        normalizer = x_exp.sum(axis=-1, keepdims=True)
-        self.a = x_exp / normalizer
+        x_shifted = x - np.max(x)
+        x_exp = np.exp(x_shifted)
+        self.a = x_exp / x_exp.sum(axis=-1, keepdims=True)
         return self.a
         
-    def backward(self, delta_in):
-        return delta_in
+    def backward(self, din):
+        return din
         
     def update_params(self, lr):
         pass
