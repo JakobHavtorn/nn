@@ -1,6 +1,7 @@
-import numpy as np
-from .optimizer import Optimizer
 import IPython
+import numpy as np
+
+from .optimizer import Optimizer
 
 
 class SGD(Optimizer):
@@ -19,10 +20,8 @@ class SGD(Optimizer):
             if self.weight_decay != 0:
                 dp += self.weight_decay
             if self.momentum != 0:
-                IPython.embed()
                 if 'momentum_buffer' not in self.state[p]:
                     self.state[p]['momentum_buffer'] = np.zeros(p.shape)
-                    self.state[p]['momentum_buffer'] *= self.momentum
                     self.state[p]['momentum_buffer'] += dp
                 else:
                     self.state[p]['momentum_buffer'] *= self.momentum
