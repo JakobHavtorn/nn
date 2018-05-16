@@ -60,7 +60,6 @@ class Sequential(Module):
             x = module.forward(x)
         return x
 
-    def backward(self, predictions, targets):
-        delta_out = self.loss.backward(predictions, targets)
+    def backward(self, dout):
         for module in reversed(self._modules.values()):
-            delta_out = module.backward(delta_out)
+            dout = module.backward(dout)
