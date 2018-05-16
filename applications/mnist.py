@@ -1,6 +1,6 @@
 import os
 import torch
-from context import nn, optim, solver
+from context import nn, optim, utils
 from torchvision import datasets, transforms
 import IPython
 
@@ -31,32 +31,26 @@ def get_loaders(dataset_name, batch_size):
     train_set = data_set(data_dir, **train_set_kwargs)
     val_set = data_set(data_dir, **val_set_kwargs)
     train_loader_kwargs = {'batch_size': batch_size, 'shuffle': True}
-    val_loader_kwargs = {'batch_size': len(val_set), 'shuffle': True}
+    val_loader_kwargs = {'batch_size': batch_size, 'shuffle': True}
     train_loader = torch.utils.data.DataLoader(train_set, **train_loader_kwargs)
     val_loader = torch.utils.data.DataLoader(val_set, **val_loader_kwargs)
     return train_loader, val_loader
 
-
-dataset_name = "MNIST"
-batch_size = 64
-train_loader, val_loader = get_loaders(dataset_name, batch_size)
-
-
 # Network
 class FNNClassifier(nn.Module):
-    def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, loss=nn.CrossEntropyLoss):
+    def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, batchnorm=False, dropout=False):
         super(FNNClassifier, self).__init__()
-        activations = [activation()] * len(hidden_dims) + [nn.Softmax()]
         dims = [in_features, *hidden_dims, out_classes]
-        self.layers = []
         for i in range(len(dims)-2):
-            self.layers.append(nn.Linear(dims[i], dims[i+1]))
-            self.layers.append(nn.BatchNorm1D(dims[i+1]))
-            self.layers.append(activations[i])
-        self.layers.append(nn.Linear(dims[-2], dims[-1]))
-        self.layers.append(activations[-1])
-        self.fnn = nn.Sequential(*self.layers)
-        self.loss = loss()
+            self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
+            if batchnorm:
+                self.add_module("BatchNorm" + str(i), nn.BatchNorm1D(dims[i+1]))
+            if dropout:
+                self.add_module("Dropout" + str(i), nn.Dropout1D())
+            self.add_module("Activation" + str(i), activation())
+        i += 1
+        self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
+        self.add_module("Activation" + str(i), nn.Softmax())
     
     # def forward(self, x):
     #     x = x.reshape(x.shape[0], -1)
@@ -68,16 +62,23 @@ class FNNClassifier(nn.Module):
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
-        for module in self.layers:
+        for module in self._modules.values():
             x = module.forward(x)
         return x
 
-    def backward(self, predictions, targets):
-        delta_out = self.loss.backward(predictions, targets)
-        for module in reversed(self.layers):
-            delta_out = module.backward(delta_out)
+    def backward(self, dout):
+        for module in reversed(self._modules.values()):
+            dout = module.backward(dout)
 
-classifier = FNNClassifier(28*28, 10)
+
+dataset_name = "MNIST"
+batch_size = 64
+train_loader, val_loader = get_loaders(dataset_name, batch_size)
+classifier = FNNClassifier(28*28, 10, hidden_dims=[512, 256, 128], batchnorm=True)
+for n, m in classifier.named_modules():
+    print(n, m)
+
 optimizer = optim.SGD(classifier, lr=0.001, momentum=0, nesterov=False, dampening=0, weight_decay=0)
-solver = solver.Solver(classifier, train_loader, val_loader, optimizer)
+loss = nn.CrossEntropyLoss()
+solver = utils.Solver(classifier, train_loader, val_loader, optimizer, loss)
 solver.train()
