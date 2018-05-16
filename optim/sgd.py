@@ -5,8 +5,8 @@ from .optimizer import Optimizer
 
 
 class SGD(Optimizer):
-    def __init__(self, model, lr=0.001, momentum=0, nesterov=False, dampening=0, weight_decay=0):
-        kwargs = {'lr': lr, 'weight_decay': weight_decay}
+    def __init__(self, model, lr=0.001, momentum=0, nesterov=False, dampening=0, l1_weight_decay=0, l2_weight_decay=0):
+        kwargs = {'lr': lr, 'l1_weight_decay': l1_weight_decay, 'l2_weight_decay': l2_weight_decay}
         super(SGD, self).__init__(model, **kwargs)
         self.momentum = momentum
         self.nesterov = nesterov
@@ -17,8 +17,10 @@ class SGD(Optimizer):
             if p.grad is None:
                 continue
             dp = p.grad
-            if self.weight_decay != 0:
-                dp += self.weight_decay
+            if self.l1_weight_decay != 0:
+                dp += self.l1_weight_decay
+            if self.l2_weight_decay != 0:
+                dp += self.l2_weight_decay * p.data
             if self.momentum != 0:
                 if 'momentum_buffer' not in self.state[p]:
                     self.state[p]['momentum_buffer'] = np.zeros(p.shape)
