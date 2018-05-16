@@ -1,4 +1,6 @@
+import IPython
 import numpy as np
+
 from .module import Module
 from .parameter import Parameter
 
@@ -26,6 +28,9 @@ class BatchNorm1D(Module):
             self.running_var = None
             self.num_batches_tracked = None
         self.reset_parameters()
+
+    def __str__(self): 
+        return "BatchNorm({:d}, momentum={:3.2f}, affine={}, track={})".format(self.num_features, self.momentum, self.affine, self.track_running_stats)
 
     def reset_running_stats(self):
         if self.track_running_stats:
@@ -73,10 +78,12 @@ class BatchNorm1D(Module):
 
     def backward(self, dout):
         N, _ = dout.shape
-        dx_norm = dout * self.gamma
+        dx_norm = dout * self.gamma.data
         dsample_var = np.sum(dx_norm * (self.x - self.batch_mean) * (-0.5) * (self.batch_var + self.eps)**(-1.5), axis=0)
-        dsample_mean = np.sum(dx_norm * (-1/np.sqrt(self.batch_var + self.eps)) , axis=0) + dsample_var * ((np.sum(-2*(self.x - self.batch_var))) / N)
-        dx = dx_norm * (1/np.sqrt(self.batch_mean + self.eps)) + dsample_var * (2*(self.x-self.batch_var)/N) + dsample_mean/N
+
+        dsample_mean = np.sum(dx_norm * (-1/np.sqrt(self.batch_var + self.eps)) , axis=0) + dsample_var * ((np.sum(-2*(self.x - self.batch_mean))) / N)
+
+        dx = dx_norm * (1/np.sqrt(self.batch_var + self.eps)) + dsample_var * (2*(self.x - self.batch_mean)/N) + dsample_mean/N
         if self.affine:
             self.beta.grad = np.sum(dout, axis=0)
             self.gamma.grad = np.sum(dout * self.x_norm, axis=0)
