@@ -1,8 +1,11 @@
 import os
+
+import IPython
+import numpy as np
 import torch
+
 from context import nn, optim, utils
 from torchvision import datasets, transforms
-import IPython
 
 
 def get_loaders(dataset_name, batch_size):
@@ -46,19 +49,11 @@ class FNNClassifier(nn.Module):
             if batchnorm:
                 self.add_module("BatchNorm" + str(i), nn.BatchNorm1D(dims[i+1]))
             if dropout:
-                self.add_module("Dropout" + str(i), nn.Dropout1D())
+                self.add_module("Dropout" + str(i), nn.Dropout(p=dropout))
             self.add_module("Activation" + str(i), activation())
         i += 1
         self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
         self.add_module("Activation" + str(i), nn.Softmax())
-    
-    # def forward(self, x):
-    #     x = x.reshape(x.shape[0], -1)
-    #     return self.fnn.forward(x)
-
-    # def backward(self, x, t):
-    #     x = x.reshape(x.shape[0], -1)
-    #     return self.fnn.backward(x, t)
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
@@ -71,14 +66,17 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 
 
+classifier = FNNClassifier(28*28, 10, hidden_dims=[512, 256, 128], activation=nn.ReLU, batchnorm=True, dropout=False)
+for n, m in classifier.named_modules():
+    print(n, m)
+n = 0
+for p in classifier.parameters():
+    n += np.prod(p.shape)
+print(n)
 dataset_name = "MNIST"
 batch_size = 64
 train_loader, val_loader = get_loaders(dataset_name, batch_size)
-classifier = FNNClassifier(28*28, 10, hidden_dims=[512, 256, 128], batchnorm=True)
-for n, m in classifier.named_modules():
-    print(n, m)
-
-optimizer = optim.SGD(classifier, lr=0.001, momentum=0, nesterov=False, dampening=0, weight_decay=0)
+optimizer = optim.SGD(classifier, lr=0.001, momentum=0.9, nesterov=False, dampening=0, weight_decay=0)
 loss = nn.CrossEntropyLoss()
 solver = utils.Solver(classifier, train_loader, val_loader, optimizer, loss)
 solver.train()
