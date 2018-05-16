@@ -1,5 +1,6 @@
 from .activation import *
 from .batchnorm import *
+from .dropout import *
 from .linear import *
 from .loss import *
 # from .solver import Solver
