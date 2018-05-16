@@ -72,7 +72,7 @@ for n, m in classifier.named_modules():
 n = 0
 for p in classifier.parameters():
     n += np.prod(p.shape)
-print(n)
+print("Total number of parameters: " + str(n))
 dataset_name = "MNIST"
 batch_size = 64
 train_loader, val_loader = get_loaders(dataset_name, batch_size)
