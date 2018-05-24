@@ -45,18 +45,18 @@ class Linear(Module):
         if self.b is not None:
             self.b.data = np.zeros(self.b.shape)
 
-    def forward(self, x, *args):
+    def forward(self, x):
         self.x = x
-        self.a = np.dot(x, self.W.data)
+        z = np.dot(x, self.W.data)
         if self.b is not None:
-            self.a += self.b.data
-        return self.a
+            z += self.b.data
+        return z
         
-    def backward(self, dout):
-        self.W.grad = np.dot(self.x.T, dout)
-        dx = np.dot(dout, self.W.data.T)
+    def backward(self, delta):
+        self.W.grad = np.dot(self.x.T, delta)
+        dx = np.dot(delta, self.W.data.T)
         if self.b is not None:
-            self.b.grad = dout.sum(axis=0)
+            self.b.grad = delta.sum(axis=0)
         return dx
 
     def update_params(self, lr):
