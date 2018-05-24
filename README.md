@@ -74,21 +74,11 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
-An example training result for this network is
+## Training example
+An [MNIST example]((/applications/mnist.py) has been run for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
 
-<object data="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf">
-        This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
-
-![](../applications/results/mnist/loss_overfit.pdf "Logo Title Text 1")
-
-![](https://github.com/JakobHavtorn/nn/blob/master/applications/results/mnist/accuracy_overfit.pdf "Logo Title Text 1")
-
-![](https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf "Logo Title Text 1")
-
-
+![](/applications/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
+![](/applications/results/mnist/accuracy_overfit.png "Training and validation accuracy")
 
 ## Sources
 - Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
