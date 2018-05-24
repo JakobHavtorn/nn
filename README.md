@@ -74,6 +74,12 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
+An example training result for this network is
+
+![](https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/loss.pdf "Logo Title Text 1")
+![](https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy.pdf "Logo Title Text 1")
+
+
 
 ## Sources
 - Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
