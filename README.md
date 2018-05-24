@@ -18,6 +18,9 @@ Currently implemented modules are
     - [ReLU](https://pytorch.org/docs/stable/nn.html#relu)
     - [Softplus](https://pytorch.org/docs/stable/nn.html#softplus)
     - [Softmax](https://pytorch.org/docs/stable/nn.html#softmax)
+- Losses
+    - [Mean squared loss (MSE)](https://pytorch.org/docs/stable/nn.html#mseloss)
+    - [Categorical cross entropy loss (CCEL)](https://pytorch.org/docs/stable/nn.html#crossentropyloss)
 
 ## Implementation roadmap
 Layers on the roadmap for implementation are
