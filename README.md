@@ -76,6 +76,12 @@ class FNNClassifier(nn.Module):
 
 An example training result for this network is
 
+<object data="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf">
+        This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/JakobHavtorn/nn/raw/master/applications/results/mnist/accuracy_overfit.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
+
 ![](../applications/results/mnist/loss_overfit.pdf "Logo Title Text 1")
 
 ![](https://github.com/JakobHavtorn/nn/blob/master/applications/results/mnist/accuracy_overfit.pdf "Logo Title Text 1")
