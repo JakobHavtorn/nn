@@ -81,8 +81,8 @@ An [MNIST example]((applications/mnist.py) has been run for testing purposes. Th
 ![](applications/results/mnist/accuracy_overfit.png "Training and validation accuracy")
 
 ## Sources
-- Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
-- The batch normalization layer has been inspired by (https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py). 
-- The convolutional layer has been inspired by (https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/)
-- The recurrent LSTM unit has been inspired by (http://blog.varunajayasiri.com/numpy_lstm.html).
-- See also (https://github.com/wiseodd/hipsternet)
+- Some inspiration has been found at the DTU PhD Deep Learning Summer School 2015, see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
+- The batch normalization layer has been inspired by https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py)
+- The convolutional layer has been inspired by https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
+- The recurrent LSTM unit has been inspired by http://blog.varunajayasiri.com/numpy_lstm.html
+- See also https://github.com/wiseodd/hipsternet
