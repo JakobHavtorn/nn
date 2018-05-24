@@ -75,10 +75,10 @@ class FNNClassifier(nn.Module):
 ``` 
 
 ## Training example
-An [MNIST example]((/applications/mnist.py) has been run for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
+An [MNIST example]((applications/mnist.py) has been run for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
 
-![](/applications/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
-![](/applications/results/mnist/accuracy_overfit.png "Training and validation accuracy")
+![](applications/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
+![](applications/results/mnist/accuracy_overfit.png "Training and validation accuracy")
 
 ## Sources
 - Some inspiration has been found at the [DTU PhD Deep Learning Summer School 2015], see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
