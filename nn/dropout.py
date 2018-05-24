@@ -30,6 +30,3 @@ class Dropout(Module):
     def backward(self, delta_in):
         delta_out = delta_in*self.a
         return delta_out
-
-    def update_params(self, lr):
-        pass

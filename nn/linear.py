@@ -58,7 +58,3 @@ class Linear(Module):
         if self.b is not None:
             self.b.grad = delta.sum(axis=0)
         return dx
-
-    def update_params(self, lr):
-        self.W.data = self.W.data - self.grad_W*lr
-        self.b.data = self.b.data - self.grad_b*lr
