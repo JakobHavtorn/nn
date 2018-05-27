@@ -10,10 +10,10 @@ class Linear(Module):
 
     The forward transformation is
         y = x * W + b
-    where the following dimensions hold true
+    with the following dimensions
         x:  (N, D)
         W:  (D, M)
-        b:  (M
+        b:  (M)
         y:  (N, M)
 
     Parameters
