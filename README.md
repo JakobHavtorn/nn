@@ -1,8 +1,10 @@
 # nn
-## Implementation of neural network modules in numpy.
+## Implementation of neural network modules in numpy
 This is an implementation of some common neural network architectural modules using the Numerical Python (Numpy) library.
 
-The overall modular structure is inspired by that of [PyTorch](https://pytorch.org/). All network modules are children of a parent `Module`(https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module). Both layers, such as linear, convolutional, and recurrent, and nonlinear activation functions are implemented as subclasses of the Module class. Network models are also instantiated as subclasses of the `Module` class and hold their layers and activation functions as attributes, effectively forming a graph.
+The overall modular structure is inspired by that of [PyTorch](https://pytorch.org/). All network modules are children of a parent [Module](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module). Both layers, such as linear, convolutional, and recurrent, and nonlinear activation functions are implemented as subclasses of the Module class. Network models are also instantiated as subclasses of the `Module` class and hold their layers and activation functions as attributes, effectively forming a graph.
+
+Conversely to PyTorch, the backwards and forward pass of any module is explicitly coded in Python using NumPy rather than in a C backend. This is obviously not competitive on performance, but served as nice personal exercises in deriving and implementing backpropagation for a range of different network layers. All code there executes exclusively on the CPU.
 
 ## Implemented modules
 Currently implemented modules are
@@ -39,7 +41,7 @@ Layers on the roadmap for implementation are
     - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
     - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
-## How to
+## How to construct a network model
 A network model can be defined as a class. In the `__init__` method, the network should have its layers and activation functions etc. added either as either named attributes or using the `add_module` method. The latter option is well suited in cases where many similar layers are added sequentially.
 
 Below is an example of how to construct an FNN classifier. The classifier has
@@ -74,7 +76,7 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
-## Training example
+### Training example
 An [MNIST example]((applications/mnist.py) has been run for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
 
 ![](applications/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
