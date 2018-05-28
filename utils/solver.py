@@ -92,7 +92,6 @@ class Solver(object):
         self.epoch = 0
         self.best_val_acc = 0
         self.best_params = {}
-        self.train_loss_history = []
         self.train_acc_history = []
         self.train_loss_history = []
         self.val_acc_history = []
@@ -119,7 +118,8 @@ class Solver(object):
         self.train_loss_history.append(loss)
 
     def _save_checkpoint(self):
-        if self.checkpoint_name is None: return
+        if self.checkpoint_name is None: 
+            return
         checkpoint = {
           'model': self.model,
           'train_loader': self.train_loader,
@@ -167,17 +167,17 @@ class Solver(object):
     def train(self):
         """Run optimization to train the model.
         """
-        batch_size = self.train_loader.batch_size
+        self.batch_size = self.train_loader.batch_size
         num_train_examples = self.train_loader.dataset.train_labels.shape[0]
-        batches_per_epoch = max(num_train_examples // batch_size, 1)
+        self.batches_per_epoch = max(num_train_examples // self.batch_size, 1)
         if self.verbose:
-            print('Training for {:d} epochs with {:d} batches per epoch...'.format(self.num_epochs, batches_per_epoch))
+            print('Training for {:d} epochs with {:d} batches per epoch...'.format(self.num_epochs, self.batches_per_epoch))
         for epoch in range(self.num_epochs):
             # Start monitoring progress
             self.epoch = epoch
             if self.verbose:
                 title = "(Epoch {:d} / {:d})".format(self.epoch+1, self.num_epochs)
-                self.progress = ProgressBar(title=title, end_value=batches_per_epoch, keep_after_done=False)
+                self.progress = ProgressBar(title=title, end_value=self.batches_per_epoch, keep_after_done=False)
                 self.progress.start()
             # Execute training and training set
             for batch, (data, targets) in enumerate(self.train_loader):
@@ -186,6 +186,8 @@ class Solver(object):
                 self._step(data, targets_onehot)
                 if self.verbose:
                     self.progress.progress(batch)
+            # Decay learning rate
+            self.optimizer.lr *= self.lr_decay
             # Validate
             self.model.eval()
             val_acc, val_loss = self.validate_model()
