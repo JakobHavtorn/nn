@@ -25,6 +25,19 @@ class Module():
         """
         self.train(mode=False)
 
+    def summarize(self):
+        """Print a model summary including all submodules.
+        """
+        name_col_width = max(len(n) for n, m in self.named_modules()) + 2
+        module_col_width = max(len(str(m)) for n, m in self.named_modules())
+        for n, m in self.named_modules():
+            if m is not self:
+                print(n.ljust(name_col_width) + str(m).ljust(module_col_width))
+        n = 0
+        for p in self.parameters():
+            n += np.prod(p.shape)
+        print("Total number of parameters: " + str(n))
+
     def add_module(self, name, module):
         """Adds a child module to the current module.
         """
