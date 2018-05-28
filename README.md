@@ -14,6 +14,11 @@ Currently implemented modules are
     - [Dropout1D](https://pytorch.org/docs/stable/nn.html#dropout)
 - Normalization layers
     - [BatchNorm1D](https://pytorch.org/docs/stable/nn.html#batchnorm1d)
+- Convolutional layers
+    - [2 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv2d)
+- Pooling layers
+    - [2 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
+    - [2 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
 - Activations
     - [Sigmoid](https://pytorch.org/docs/stable/nn.html#sigmoid)
     - [Tanh](https://pytorch.org/docs/stable/nn.html#tanh)
@@ -28,11 +33,12 @@ Currently implemented modules are
 Layers on the roadmap for implementation are
 - Convolutional layers
     - [1 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv1d)
-    - [2 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv2d)
     - [3 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv3d)
 - Pooling layers
     - [1 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
     - [1 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
+    - [3 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
+    - [3 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
 - Dropout layers
     - [2 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout2d)
     - [3 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout3d)
