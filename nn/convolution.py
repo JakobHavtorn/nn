@@ -5,6 +5,14 @@ from .im2col import col2im_indices, im2col_indices
 from .module import Module
 from .parameter import Parameter
 
+try:
+    from .im2col_cython import col2im_cython, im2col_cython
+    from .im2col_cython import col2im_6d_cython
+except ImportError:
+    print("Failed to import im2col and col2im Cython versions.")
+    print('Run the following from the nn directory and try again:')
+    print('python setup.py build_ext --inplace')
+
 
 class Conv2D(Module):
     """Convolution module which performs the two-dimensional convolution.
@@ -55,6 +63,10 @@ class Conv2D(Module):
             self.b = None
         self.reset_parameters()
 
+    def __str__(self): 
+        return "Conv2D(in_channels={:d}, out_channels={:d}, kernel=({:d},{:d}), stride={:d}, padding={:d}, bias={})".format(
+            self.in_channels, self.out_channels, self.kernel_size[0], self.kernel_size[1], self.stride, self.padding, self.b is not None)
+
     def reset_parameters(self):
         n = self.in_channels
         for k in self.kernel_size:
@@ -73,7 +85,8 @@ class Conv2D(Module):
             raise Exception('Invalid output dimension!')
         h_out, w_out = int(h_out), int(w_out)
         # Reshape
-        X_col = im2col_indices(X, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        X_col = im2col_cython(X, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        # X_col = im2col_indices(X, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
         K_col = self.K.data.reshape(self.out_channels, -1)
         # Convolve
         S = K_col @ X_col
@@ -83,21 +96,23 @@ class Conv2D(Module):
         S = S.reshape(self.out_channels, h_out, w_out, N)
         S = S.transpose(3, 0, 1, 2)
         # Cache
-        self.X = X
+        self.X_shape = X.shape
         self.X_col = X_col
         return S
 
-    def backward(dout):
-        IPython.embed()
+    def backward(self, dout):
+        N, C, H, W = self.X_shape
         # Bias gradient
-        self.b.grad = np.sum(dout, axis=(0, 2, 3))
-        self.b.grad = self.b.grad.reshape(self.out_channels, -1)
+        if self.b is not None:
+            self.b.grad = np.sum(dout, axis=(0, 2, 3))
+            self.b.grad = self.b.grad.reshape(self.out_channels, -1)
         # Kernel gradient
         dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(self.out_channels, -1)
         self.K.grad = dout_reshaped @ self.X_col.T
         self.K.grad = self.K.grad.reshape(self.K.shape)
         # Input gradient
-        W_reshape = W.reshape(self.out_channels, -1)
-        dself.X_col = W_reshape.T @ dout_reshaped
-        dX = col2im_indices(dX_col, X.shape, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        K_col = self.K.data.reshape(self.out_channels, -1)
+        dX_col = K_col.T @ dout_reshaped
+        dX = col2im_cython(dX_col, N, C, H, W, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        # dX = col2im_indices(dX_col, self.X_shape, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
         return dX
