@@ -152,4 +152,4 @@ The convolutional classifier from above has also been tested. The convolutional 
 - The batch normalization layer has been inspired by https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py)
 - The convolutional layer has been inspired by https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
 - The recurrent LSTM unit has been inspired by http://blog.varunajayasiri.com/numpy_lstm.html
-- See also https://github.com/wiseodd/hipsternet
+- See also https://github.com/wiseodd/hipsternet and https://github.com/cs231n/cs231n.github.io
