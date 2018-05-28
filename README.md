@@ -76,13 +76,8 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
-<<<<<<< HEAD
-### Training example
-An [MNIST example]((applications/mnist.py) has been run for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
-=======
 ## Training example
 In /examples, two MNIST examples has been created for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
->>>>>>> bac3a9fa27affc6383f1d980bdcfcf2cf1fadc32
 
 ![](examples/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
 ![](examples/results/mnist/accuracy_overfit.png "Training and validation accuracy")
