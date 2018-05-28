@@ -1,11 +1,10 @@
 import IPython
+import matplotlib.pyplot as plt
 import numpy as np
 
 from context import nn, optim, utils
-
 from loaders import get_loaders
 from models import CNNClassifier
-
 
 if __name__ == '__main__':
     # Model
@@ -27,3 +26,26 @@ if __name__ == '__main__':
     # Train
     solver = utils.Solver(classifier, train_loader, val_loader, optimizer, loss)
     solver.train()
+
+    if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+
+    val_iterations = [(epoch +1) * solver.batches_per_epoch for epoch in range(num_epochs)]
+
+    f, a = plt.subplots()
+    a.plot(solver.train_loss_history, '.', alpha=0.2,)
+    a.plot(val_iterations, solver.val_loss_history)
+    a.set_xlabel('Iteration')
+    a.set_ylabel('Negative log likelihod loss')
+    a.legend(['Training', 'Validation'])
+    f.savefig(save_dir + 'loss.pdf', bbox_inches='tight')
+    f.savefig(save_dir + 'loss.png', bbox_inches='tight')
+
+    f, a = plt.subplots()
+    a.plot(solver.train_acc_history, '.', alpha=0.2,)
+    a.plot(val_iterations, solver.val_acc_history)
+    a.set_xlabel('Iteration')
+    a.set_ylabel('Classification accuracy')
+    a.legend(['Training', 'Validation'])
+    f.savefig('./results/mnist/accuracy.pdf', bbox_inches='tight')
+    f.savefig('./results/mnist/accuracy.png', bbox_inches='tight')
