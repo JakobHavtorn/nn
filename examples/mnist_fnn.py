@@ -16,6 +16,7 @@ if __name__ == '__main__':
         n += np.prod(p.shape)
     print("Total number of parameters: " + str(n))
     # Dataset
+    save_dir = './results/mnist/'
     dataset_name = "MNIST"
     batch_size = 64
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     solver.train()
 
     if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
+        os.makedirs(save_dir)
 
     val_iterations = [(epoch +1) * solver.batches_per_epoch for epoch in range(num_epochs)]
 
