@@ -41,9 +41,16 @@ Layers on the roadmap for implementation are
     - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
     - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
-## How to construct a network model
-A network model can be defined as a class. In the `__init__` method, the network should have its layers and activation functions etc. added either as either named attributes or using the `add_module` method. The latter option is well suited in cases where many similar layers are added sequentially.
 
+## How to construct a network model
+A network model can be defined as a class. 
+
+In the `__init__` method, the network should have its layers and activation functions etc. added either as either named attributes or using the `add_module` method. The latter option is well suited in cases where many similar layers are added sequentially. 
+
+The class should have the required `forward` and `backward` methods that define the forward and backward propagations using the `forward` and `backward` methods of the models modules. When the models are sequential, a simple for loop is easy to use.
+
+
+### FNN example
 Below is an example of how to construct an FNN classifier. The classifier has
 - variable input and output dimensions
 - variable number of hidden layers and dimensions
@@ -54,16 +61,17 @@ class FNNClassifier(nn.Module):
     def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, batchnorm=False, dropout=False):
         super(FNNClassifier, self).__init__()
         dims = [in_features, *hidden_dims, out_classes]
-        for i in range(len(dims)-2):
+        for i in range(len(dims) - 1):
+            is_output_layer = i == len(dims) - 2
             self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
-            if batchnorm:
+            if batchnorm and not is_output_layer:
                 self.add_module("BatchNorm" + str(i), nn.BatchNorm1D(dims[i+1]))
-            if dropout:
+            if dropout and not is_output_layer:
                 self.add_module("Dropout" + str(i), nn.Dropout(p=dropout))
-            self.add_module("Activation" + str(i), activation())
-        i += 1
-        self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
-        self.add_module("Activation" + str(i), nn.Softmax())
+            if not is_output_layer:
+                self.add_module("Activation" + str(i), activation())
+            else:
+                self.add_module("Activation" + str(i), nn.Softmax())
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
@@ -76,13 +84,62 @@ class FNNClassifier(nn.Module):
             dout = module.backward(dout)
 ``` 
 
+### CNN example
+Below is an example of how to construct an CNN classifier. The classifier has
+- variable input and output dimensions
+- variable number of hidden layers and dimensions
+- specifiable activation function
+- potential batchnorm and dropout layers
+For this classifier however, changing the convolutional layers require a corresponding change to the fully connected classifier layers. Alternatively, a completely convolutional model could be created.
+```python
+class CNNClassifier(nn.Module):
+    def __init__(self, in_features, out_classes, feature_maps=[16, 32], hidden_dims=[512], activation=nn.ReLU, batchnorm=False, dropout=False):
+        super(CNNClassifier, self).__init__()
+        # Convolutional layers
+        self.add_module("Convolutional0", nn.Conv2D(1, feature_maps[0], kernel_size=(5, 5)))
+        self.add_module("Maxpool0", nn.MaxPool2D(kernel_size=(2, 2), stride=2, padding=0))
+        self.add_module("Activation0", activation())
+        self.add_module("Convolutional1", nn.Conv2D(feature_maps[0], feature_maps[1], kernel_size=(5, 5)))
+        self.add_module("Maxpool1", nn.MaxPool2D(kernel_size=(2, 2), stride=2, padding=0))
+        self.add_module("Activation1", activation())
+        self.add_module("Flatten", nn.Flatten())
+        # Feedforward classifier
+        dims = [*hidden_dims, out_classes]
+        for i in range(len(dims) - 1):
+            is_output_layer = i == len(dims) - 2
+            if batchnorm:
+                self.add_module("BatchNorm" + str(i), nn.BatchNorm1D(dims[i]))
+            self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
+            if dropout and not is_output_layer:
+                self.add_module("Dropout" + str(i), nn.Dropout(p=dropout))
+            if not is_output_layer:
+                self.add_module("Activation" + str(i+2), activation())
+            else:
+                self.add_module("Activation" + str(i+2), nn.Softmax())
+
+    def forward(self, x):
+        for module in self._modules.values():
+            x = module.forward(x)
+        return x
+
+    def backward(self, dout):
+        for module in reversed(self._modules.values()):
+            dout = module.backward(dout)
+```
+
+
 ## Training example
-In /examples, two MNIST examples has been created for testing purposes. The above network without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
+In /examples, two MNIST examples has been created for testing purposes. 
 
-![](examples/results/mnist/loss_overfit.png "Training and validation negative log likelihood loss")
-![](examples/results/mnist/accuracy_overfit.png "Training and validation accuracy")
+The above FNN classifier without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
 
-A convolutional variant has also been implemented.
+![](examples/results/mnist/readme_loss_fnn.png "Training and validation negative log likelihood loss")
+![](examples/results/mnist/readme_accuracy_fnn.png "Training and validation accuracy")
+
+The convolutional classifier from above has also been tested. The convolutional architecture is much less prone to overfitting.
+
+![](examples/results/mnist/readme_loss_cnn.png "Training and validation negative log likelihood loss")
+![](examples/results/mnist/readme_accuracy_cnn.png "Training and validation accuracy")
 
 ## Sources
 - Some inspiration has been found at the DTU PhD Deep Learning Summer School 2015, see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
