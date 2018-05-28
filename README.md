@@ -4,7 +4,7 @@ This is an implementation of some common neural network architectural modules us
 
 The overall modular structure is inspired by that of [PyTorch](https://pytorch.org/). All network modules are children of a parent [Module](https://pytorch.org/docs/stable/_modules/torch/nn/modules/module.html#Module). Both layers, such as linear, convolutional, and recurrent, and nonlinear activation functions are implemented as subclasses of the Module class. Network models are also instantiated as subclasses of the `Module` class and hold their layers and activation functions as attributes, effectively forming a graph.
 
-Conversely to PyTorch, the backwards and forward pass of any module is explicitly coded in Python using NumPy rather than in a C backend. This is obviously not competitive on performance, but served as nice personal exercises in deriving and implementing backpropagation for a range of different network layers. All code there executes exclusively on the CPU.
+Conversely to PyTorch, the backwards and forward pass of any module is explicitly coded in Python using NumPy rather than in a C backend. This is obviously not competitive on performance, but served as nice personal exercises in deriving and implementing backpropagation for a range of different network layers. All code executes exclusively on the CPU.
 
 ## Implemented modules
 Currently implemented modules are
