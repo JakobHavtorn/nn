@@ -22,6 +22,6 @@ class Parameter(object):
         return self.data.shape
 
     def copy(self):
-        p = Parameter(self.data)
-        p.grad = self.grad
+        p = Parameter(self.data.copy())
+        p.grad = self.grad.copy()
         return p
