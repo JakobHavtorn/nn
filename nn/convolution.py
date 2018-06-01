@@ -58,7 +58,7 @@ class Conv2D(Module):
         self.kernel_size = kernel_size
         self.K = Parameter(np.zeros((out_channels, in_channels, *self.kernel_size)))
         if bias:
-            self.b = Parameter(np.zeros(((self.out_channels, 1))))
+            self.b = Parameter(np.zeros((self.out_channels, 1)))
         else:
             self.b = None
         self.reset_parameters()
