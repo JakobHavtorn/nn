@@ -72,7 +72,7 @@ class Module():
                     yield m
 
     def modules(self):
-        for name, module in self.named_modules():
+        for _, module in self.named_modules():
             yield module
 
     def named_children(self):
@@ -88,7 +88,7 @@ class Module():
     def children(self):
         """Returns an iterator over immediate children modules.
         """
-        for name, module in self.named_children():
+        for _, module in self.named_children():
             yield module
 
     def named_parameters(self, memo=None, prefix=''):
@@ -109,7 +109,7 @@ class Module():
     def parameters(self):
         """Returns an iterator over module parameters.
         """
-        for name, param in self.named_parameters():
+        for _, param in self.named_parameters():
             yield param
 
     def _all_buffers(self, memo=None):
@@ -117,7 +117,7 @@ class Module():
         """
         if memo is None:
             memo = set()
-        for name, b in self._buffers.items():
+        for _, b in self._buffers.items():
             if b is not None and b not in memo:
                 memo.add(b)
                 yield b
