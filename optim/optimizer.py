@@ -26,8 +26,8 @@ class Optimizer(object):
                 p.grad = np.clip(p.grad, -self.gradient_clip, self.gradient_clip)
 
     def step(self):
-        self._step()
         self.clip_grads()
+        self._step()
 
     def _step(self):
         raise NotImplementedError()
