@@ -11,13 +11,10 @@ class Sigmoid(Module):
         self.a = 1.0 / (1 + np.exp(-x))
         return self.a
         
-    def backward(self, din):
-        delta_out = self.a * (1 - self.a) * din
-        return delta_out
-        
-    def update_params(self, lr):
-        pass
-    
+    def backward(self, din, a_cache=None):
+        a_cache = self.a if a_cache is None else a_cache
+        return a_cache * (1 - a_cache) * din
+
 
 class Tanh(Module):
     def __str__(self):
@@ -27,11 +24,9 @@ class Tanh(Module):
         self.a = np.tanh(x)
         return self.a
 
-    def backward(self, din):
-        return (1 - self.a ** 2) * din
-
-    def update_params(self, lr):
-        pass
+    def backward(self, din, a_cache=None):
+        a_cache = self.a if a_cache is None else a_cache
+        return (1 - a_cache ** 2) * din
 
 
 class ReLU(Module):
@@ -42,12 +37,10 @@ class ReLU(Module):
         self.a = np.maximum(0, x)
         return self.a
         
-    def backward(self, din):
-        return din * (self.a > 0).astype(self.a.dtype)
+    def backward(self, din, a_cache=None):
+        a_cache = self.a if a_cache is None else a_cache
+        return din * (a_cache > 0).astype(a_cache.dtype)
         
-    def update_params(self, lr):
-        pass
-    
 
 class Softplus(Module):
     def __str__(self):
@@ -55,14 +48,11 @@ class Softplus(Module):
 
     def forward(self, x):
         self.g = np.exp(x) + 1
-        self.a = np.log(g)
-        return self.a
+        return np.log(self.g)
 
-    def backward(self, din):
-        return din * 1 - self.g ** (-1)
-
-    def update_params(self, lr):
-        pass
+    def backward(self, din, g_cache=None):
+        g_cache = self.g if g_cache is None else g_cache
+        return din * 1 - g_cache ** (-1)
 
 
 class Softmax(Module):
@@ -75,8 +65,6 @@ class Softmax(Module):
         self.a = x_exp / x_exp.sum(axis=-1, keepdims=True)
         return self.a
         
-    def backward(self, din):
+    def backward(self, din, cache=None):
         return din
         
-    def update_params(self, lr):
-        pass
