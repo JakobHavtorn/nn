@@ -1,4 +1,3 @@
-import IPython
 import numpy as np
 
 from .optimizer import Optimizer
