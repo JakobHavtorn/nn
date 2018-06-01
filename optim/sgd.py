@@ -5,14 +5,14 @@ from .optimizer import Optimizer
 
 
 class SGD(Optimizer):
-    def __init__(self, model, lr=0.001, momentum=0, nesterov=False, dampening=0, l1_weight_decay=0, l2_weight_decay=0):
-        kwargs = {'lr': lr, 'l1_weight_decay': l1_weight_decay, 'l2_weight_decay': l2_weight_decay}
+    def __init__(self, model, lr=0.001, momentum=0.0, nesterov=False, dampening=0.0, l1_weight_decay=0.0, l2_weight_decay=0.0, gradient_clip=0.0):
+        kwargs = {'lr': lr, 'l1_weight_decay': l1_weight_decay, 'l2_weight_decay': l2_weight_decay, 'gradient_clip': gradient_clip}
         super(SGD, self).__init__(model, **kwargs)
         self.momentum = momentum
         self.nesterov = nesterov
         self.dampening = dampening
 
-    def step(self):
+    def _step(self):
         for p in self.model.parameters():
             if p.grad is None:
                 continue

@@ -2,11 +2,15 @@ import numpy as np
 
 
 class Optimizer(object):
+    """Base class for all optimizers
+    """
+
     def __init__(self, model, **kwargs):
         self.model = model
-        self.lr = kwargs.pop('lr')
-        self.l1_weight_decay = kwargs.pop('l1_weight_decay')
-        self.l2_weight_decay = kwargs.pop('l2_weight_decay')
+        self.lr = kwargs.pop('lr', 0.001)
+        self.l1_weight_decay = kwargs.pop('l1_weight_decay', 0.0)
+        self.l2_weight_decay = kwargs.pop('l2_weight_decay', 0.0)
+        self.gradient_clip = kwargs.pop('gradient_clip', 0.0)
         self.state = {}
         for p in self.model.parameters():
             self.state[p] = {}
@@ -16,5 +20,15 @@ class Optimizer(object):
             if p.grad is not None:
                 p.grad = np.zeros(p.shape)
 
+    def clip_grads(self):
+        if self.gradient_clip != 0.0:
+            for p in self.model.parameters():
+                p.grad = np.clip(p.grad, -self.gradient_clip, self.gradient_clip)
+
     def step(self):
+        self._step()
+        self.clip_grads()
+
+    def _step(self):
         raise NotImplementedError()
+        
