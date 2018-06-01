@@ -7,6 +7,9 @@ from .parameter import Parameter
 
 
 class Module():
+    """Base class for all neural network modules such as activations and transformations.
+    """
+
     def __init__(self, *args, **kwargs):
         self._modules = OrderedDict()
         self._parameters = OrderedDict()
@@ -160,6 +163,8 @@ class Module():
             self._parameters[name] = param
 
     def __getattr__(self, name):
+        """Returns model parameter attributes by finding them in the _parameters dictionary attribute
+        """ 
         if '_parameters' in self.__dict__:
             _parameters = self.__dict__['_parameters']
             if name in _parameters:
@@ -176,6 +181,9 @@ class Module():
             type(self).__name__, name))
 
     def __setattr__(self, name, value):
+        """Sets model parameter attributes by setting them in the _parameters dictionary attribute
+        """
+
         def remove_from(*dicts):
             for d in dicts:
                 if name in d:
@@ -218,6 +226,8 @@ class Module():
                     object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
+        """Deletes a model parameter attributes by deleting it in the _parameters dictionary attribute
+        """
         if name in self._parameters:
             del self._parameters[name]
         elif name in self._buffers:
