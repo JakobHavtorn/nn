@@ -6,6 +6,13 @@ The overall modular structure is inspired by that of [PyTorch](https://pytorch.o
 
 Conversely to PyTorch, the backwards and forward pass of any module is explicitly coded in Python using NumPy rather than in a C backend. This is obviously not competitive on performance, but served as nice personal exercises in deriving and implementing backpropagation for a range of different network layers. All code executes exclusively on the CPU.
 
+### Structure
+- `examples`: This folder contains examples of code used to train different networks on data. The models are defined in `models.py`, the data from `torchvision``torchvision` is part of PyTorch and contains among other things datasets for computer vision and data loader classes. is loaded using the method from `loaders.py`. Current examples are `mnist\_fnn.py` and `mnist\_cnn.py`.
+- `nn`: This folder holds the main network modules. The names of the contained files are self-descriptive; for instance, the affine (linear) transformation of the FNN is defined as a class in `linear.py`. All modules are subclasses of the `Module` base class which defines common behaviour.
+- `optim`: This folder holds code defining the optimizers that can be used to train the models. All optimizers are subclasses of the `Optimizer` base class.
+- `utils`: Contains some utilities for the package most importantly the `Solver` class in `solver.py` which can train a classifier. `utils` also includes a progress bar and a method for onehot encoding a target label.
+
+
 ## Implemented modules
 Currently implemented modules are
 - Linear layers
