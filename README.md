@@ -137,27 +137,13 @@ class CNNClassifier(nn.Module):
 ## Training example
 In /examples, two MNIST examples has been created for testing purposes. 
 
-The above FNN classifier without batchnorm and dropout as well as the CNN classifier were trained. The FNN was overfitted on the training set convolutional architecture is much less prone to overfitting. Final performance was
-
-
-
+The above FNN classifier without batchnorm and dropout as well as the CNN classifier were trained. The FNN was overfitted on the training set while the convolutional architecture is much less prone to overfitting. Final performance was
 
 |               |  FNN |          | CNN  |          |
 | ------------- | ---- | -------- | ---- | -------- |
 | Data set      | Loss | Accuracy | Loss | Accuracy |
-| ------------- | ---- | -------- | ---- | -------- |
-| Training      | 0.01 | 99.97%   |      |          |
-| Validation    | 0.07 | 97.95%   |      |          |
-
-
-
-|||:Header 1|:Header 2|:Header 3|:Header 4
-|| Row 1 .. |  |  |  
-|| Row 2 .. |  Test
-|| Row 3 .. |  |  |  
-|| Row 4 .. |  |  |  
-
-
+| Training      | 0.01 | 99.97%   | 0.02 | 99.42%   |
+| Validation    | 0.07 | 97.95%   | 0.04 | 98.79%   |
 
 The learning curves are seen below.
 
