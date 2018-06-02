@@ -69,7 +69,7 @@ class BatchNorm1D(Module):
             # Cache this batch
             self.x = x
         else:
-            x_norm = (x - self.running_mean) / np.sqrt(self.running_var)
+            x_norm = (x - self.running_mean) / np.sqrt(self.running_var + self.eps)
             if self.affine:
                 x_out = x_norm * self.gamma.data + self.beta.data
             else:
