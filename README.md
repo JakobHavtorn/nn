@@ -137,13 +137,36 @@ class CNNClassifier(nn.Module):
 ## Training example
 In /examples, two MNIST examples has been created for testing purposes. 
 
-The above FNN classifier without batchnorm and dropout was overfitted on the training set. The loss and accuracy can be seen below.
+The above FNN classifier without batchnorm and dropout as well as the CNN classifier were trained. The FNN was overfitted on the training set convolutional architecture is much less prone to overfitting. Final performance was
 
+
+
+
+|               |  FNN |          | CNN  |          |
+| ------------- | ---- | -------- | ---- | -------- |
+| Data set      | Loss | Accuracy | Loss | Accuracy |
+| ------------- | ---- | -------- | ---- | -------- |
+| Training      | 0.01 | 99.97%   |      |          |
+| Validation    | 0.07 | 97.95%   |      |          |
+
+
+
+|||:Header 1|:Header 2|:Header 3|:Header 4
+|| Row 1 .. |  |  |  
+|| Row 2 .. |  Test
+|| Row 3 .. |  |  |  
+|| Row 4 .. |  |  |  
+
+
+
+The learning curves are seen below.
+
+### FNN
 ![](examples/results/mnist/readme_loss_fnn.png "Training and validation negative log likelihood loss")
 ![](examples/results/mnist/readme_accuracy_fnn.png "Training and validation accuracy")
 
-The convolutional classifier from above has also been tested. The convolutional architecture is much less prone to overfitting.
 
+### CNN
 ![](examples/results/mnist/readme_loss_cnn.png "Training and validation negative log likelihood loss")
 ![](examples/results/mnist/readme_accuracy_cnn.png "Training and validation accuracy")
 
@@ -151,5 +174,5 @@ The convolutional classifier from above has also been tested. The convolutional 
 - Some inspiration has been found at the DTU PhD Deep Learning Summer School 2015, see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
 - The batch normalization layer has been inspired by https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py)
 - The convolutional layer has been inspired by https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
-- The recurrent LSTM unit has been inspired by http://blog.varunajayasiri.com/numpy_lstm.html
-- See also https://github.com/wiseodd/hipsternet and https://github.com/cs231n/cs231n.github.io
+- The recurrent LSTM unit has been inspired by https://github.com/wiseodd/hipsternet/blob/master/hipsternet/neuralnet.py
+- See also https://github.com/cs231n/cs231n.github.io
