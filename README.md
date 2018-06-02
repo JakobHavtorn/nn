@@ -168,4 +168,5 @@ The learning curves are seen below.
 - The batch normalization layer has been inspired by https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py)
 - The convolutional layer has been inspired by https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
 - The recurrent LSTM unit has been inspired by https://github.com/wiseodd/hipsternet/blob/master/hipsternet/neuralnet.py
+- A nice compilation of optimizer is described at http://ruder.io/optimizing-gradient-descent/index.html#fn:28
 - See also https://github.com/cs231n/cs231n.github.io
