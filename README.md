@@ -37,6 +37,9 @@ Currently implemented modules are
     - [Categorical cross entropy loss (CCEL)](https://pytorch.org/docs/stable/nn.html#crossentropyloss)
 
 ## Implementation roadmap
+Optimization algorithms
+- Adam
+- Implementation of weight decay according to http://arxiv.org/abs/1711.05101 and not as L2 regularization term added to gradient
 Layers on the roadmap for implementation are
 - Convolutional layers
     - [1 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv1d)
