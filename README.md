@@ -12,7 +12,6 @@ Conversely to PyTorch, the backwards and forward pass of any module is explicitl
 - `optim`: This folder holds code defining the optimizers that can be used to train the models. All optimizers are subclasses of the `Optimizer` base class.
 - `utils`: Contains some utilities for the package most importantly the `Solver` class in `solver.py` which can train a classifier. `utils` also includes a progress bar and a method for onehot encoding a target label.
 
-
 ## Implemented modules
 Currently implemented modules are
 - Linear layers
@@ -58,14 +57,12 @@ Layers on the roadmap for implementation are
     - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
     - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
-
 ## How to construct a network model
 A network model can be defined as a class. 
 
 In the `__init__` method, the network should have its layers and activation functions etc. added either as either named attributes or using the `add_module` method. The latter option is well suited in cases where many similar layers are added sequentially. 
 
 The class should have the required `forward` and `backward` methods that define the forward and backward propagations using the `forward` and `backward` methods of the models modules. When the models are sequential, a simple for loop is easy to use.
-
 
 ### FNN example
 Below is an example of how to construct an FNN classifier. The classifier has
@@ -144,7 +141,6 @@ class CNNClassifier(nn.Module):
             dout = module.backward(dout)
 ```
 
-
 ## Training example
 In /examples, two MNIST examples has been created for testing purposes. 
 
@@ -161,7 +157,6 @@ The learning curves are seen below.
 ### FNN
 ![](examples/results/mnist/readme_loss_fnn.png "Training and validation negative log likelihood loss")
 ![](examples/results/mnist/readme_accuracy_fnn.png "Training and validation accuracy")
-
 
 ### CNN
 ![](examples/results/mnist/readme_loss_cnn.png "Training and validation negative log likelihood loss")
