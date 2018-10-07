@@ -4,6 +4,7 @@ from .dropout import *
 from .linear import *
 from .convolution import *
 from .pooling import *
+from .rnn import *
 from .reshape import *
 from .loss import *
 from .containers import Sequential
