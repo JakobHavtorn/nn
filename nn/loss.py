@@ -5,25 +5,37 @@ from .module import Module
 
 
 class MeanSquaredLoss(Module):
+    """Mean Squared Loss function for multiple regression.
+
+    Shapes
+    ------
+    Input: 
+        (N, C) where N is batch size and C is number of classes.
+    Target: 
+        (N, C) where each row is a one-hot encoded vector
+    Output: float
+        Scalar loss.
+    """
     def __str__(self): 
         return "MeanSquaredLoss()"
     
     def forward(self, y, t):
-        num_batches = y.shape[0]
-        cost = 0.5 * (y-t)**2 / num_batches
-        return np.mean(np.sum(cost, axis=-1))
+        N = y.shape[0]
+        errors =  np.linalg.norm(y-t, 2, axis=0)
+        MSE = 0.5 * np.sum(errors**2) / N
+        return MSE
         
     def backward(self, y, t):
-        num_batches = y.shape[0]
-        delta_out = (1.0/num_batches) * (y-t)
+        N = y.shape[0]
+        delta_out = np.sum(y-t, axis=0) / N
         return delta_out
         
 
 class CrossEntropyLoss(Module):
-    """Cross Entropy Loss function for D class classification
+    """Cross Entropy Loss function for D class classification.
 
-        Shape
-        -----
+        Shapes
+        ------
         Input: 
             (N, C) where N is batch size and C is number of classes.
         Target: 
