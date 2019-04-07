@@ -1,3 +1,3 @@
-from .solver import Solver
+from .solver import *
 from .utils import *
 from .progress import *
