@@ -13,7 +13,7 @@ from .progress import ProgressBar
 from .utils import onehot
 
 
-class Solver(object):
+class Trainer(object):
     """A Solver encapsulates all the logic necessary for training classification
     models. The Solver performs stochastic gradient descent using different
     update rules defined in optim.py.

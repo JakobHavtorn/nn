@@ -78,17 +78,17 @@ if __name__ == '__main__':
     # Loss
     loss = nn.CrossEntropyLoss()
     # Train
-    solver = utils.Solver(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
-    solver.train()
+    trainer = utils.Trainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+    trainer.train()
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    val_iterations = [(epoch +1) * solver.batches_per_epoch for epoch in range(num_epochs)]
+    val_iterations = [(epoch +1) * trainer.batches_per_epoch for epoch in range(num_epochs)]
 
     f, a = plt.subplots()
-    a.plot(solver.train_loss_history, '.', alpha=0.2,)
-    a.plot(val_iterations, solver.val_loss_history)
+    a.plot(trainer.train_loss_history, '.', alpha=0.2,)
+    a.plot(val_iterations, trainer.val_loss_history)
     a.set_xlabel('Iteration')
     a.set_ylabel('Negative log likelihod loss')
     a.legend(['Training', 'Validation'])
@@ -96,8 +96,8 @@ if __name__ == '__main__':
     f.savefig(save_dir + 'loss_rnn.png', bbox_inches='tight')
 
     f, a = plt.subplots()
-    a.plot(solver.train_acc_history, '.', alpha=0.2,)
-    a.plot(val_iterations, solver.val_acc_history)
+    a.plot(trainer.train_acc_history, '.', alpha=0.2,)
+    a.plot(val_iterations, trainer.val_acc_history)
     a.set_xlabel('Iteration')
     a.set_ylabel('Classification accuracy')
     a.legend(['Training', 'Validation'])
