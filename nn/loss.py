@@ -32,7 +32,7 @@ class MeanSquaredLoss(Module):
         
 
 class CrossEntropyLoss(Module):
-    """Cross Entropy Loss function for D class classification.
+    """Cross Entropy Loss function for C class classification.
 
         Shapes
         ------
