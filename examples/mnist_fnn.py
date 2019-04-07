@@ -6,7 +6,6 @@ import numpy as np
 
 from context import nn, optim, utils
 from loaders import get_loaders
-from models import FNNClassifier
 
 
 class FNNClassifier(nn.Module):
@@ -33,15 +32,15 @@ class FNNClassifier(nn.Module):
         dims = [in_features, *hidden_dims, out_classes]
         for i in range(len(dims) - 1):
             is_output_layer = i == len(dims) - 2
-            self.add_module("Linear" + str(i), nn.Linear(dims[i], dims[i+1]))
+            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
             if batchnorm and not is_output_layer:
-                self.add_module("BatchNorm" + str(i), nn.BatchNorm1D(dims[i+1]))
+                self.add_module("batchnorm_" + str(i), nn.BatchNorm1D(dims[i+1]))
             if dropout and not is_output_layer:
-                self.add_module("Dropout" + str(i), nn.Dropout(p=dropout))
+                self.add_module("dropout_" + str(i), nn.Dropout(p=dropout))
             if not is_output_layer:
-                self.add_module("Activation" + str(i), activation())
+                self.add_module("activation_" + str(i), activation())
             else:
-                self.add_module("Activation" + str(i), nn.Softmax())
+                self.add_module("activation_" + str(i), nn.Softmax())
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
