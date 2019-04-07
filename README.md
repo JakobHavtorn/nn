@@ -68,6 +68,9 @@ Layers on the roadmap for implementation are
     - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
     - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
+## Other things to do
+- Refactor the Trainer class so that experiments define their own training loop and we use an Evaluator class to keep track of metrics instead.
+
 ## How to construct a model
 A network model can be defined as a class. 
 
