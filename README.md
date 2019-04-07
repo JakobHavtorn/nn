@@ -12,6 +12,17 @@ Conversely to PyTorch, the backwards and forward pass of any module is explicitl
 - `optim`: This folder holds code defining the optimizers that can be used to train the models. All optimizers are subclasses of the `Optimizer` base class.
 - `utils`: Contains some utilities for the package most importantly the `Solver` class in `solver.py` which can train a classifier. `utils` also includes a progress bar and a method for onehot encoding a target label.
 
+## Installation
+To install, execute the bash script below
+
+```bash
+git clone git@github.com:ericmjl/conda-envs.git
+cd nn
+conda env create -f environment.yml
+cd nn
+python setup.py build_ext --inplace
+```
+
 ## Implemented modules
 Currently implemented modules are
 - Linear layers
@@ -57,7 +68,7 @@ Layers on the roadmap for implementation are
     - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
     - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
-## How to construct a network model
+## How to construct a model
 A network model can be defined as a class. 
 
 In the `__init__` method, the network should have its layers and activation functions etc. added either as either named attributes or using the `add_module` method. The latter option is well suited in cases where many similar layers are added sequentially. 
