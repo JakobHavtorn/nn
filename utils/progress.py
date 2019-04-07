@@ -108,4 +108,3 @@ if __name__ == '__main__':
         time.sleep(sleep)
     pb.end()
     print("Now we are done!")
-    IPython.embed()
