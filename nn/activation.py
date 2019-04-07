@@ -3,68 +3,106 @@ import numpy as np
 from .module import Module
 
 
-class Sigmoid(Module):
+class Activation(Module):
+    def update_cache(self, value):
+        self.cache['value'] = value
+
+
+class Sigmoid(Activation):
+    def __init__(self):
+        """Sigmoid
+        """
+        super().__init__()
+        self.reset_cache()
+
     def __str__(self): 
         return "Sigmoid()"
     
     def forward(self, x):
-        self.a = 1.0 / (1 + np.exp(-x))
-        return self.a
+        a = 1.0 / (1 + np.exp(-x))
+        self.update_cache(a)
+        return a
         
-    def backward(self, din, a_cache=None):
-        a_cache = self.a if a_cache is None else a_cache
-        return a_cache * (1 - a_cache) * din
+    def backward(self, din):
+        a = self.cache['value']
+        return a * (1 - a) * din
 
 
-class Tanh(Module):
+class Tanh(Activation):
+    def __init__(self):
+        """Tanh
+        """
+        super().__init__()
+        self.reset_cache()
+
     def __str__(self):
         return "Tanh()"
 
     def forward(self, x):
-        self.a = np.tanh(x)
-        return self.a
+        a = np.tanh(x)
+        self.update_cache(a)
+        return a
 
-    def backward(self, din, a_cache=None):
-        a_cache = self.a if a_cache is None else a_cache
-        return (1 - a_cache ** 2) * din
+    def backward(self, din):
+        a = self.cache['value']
+        return (1 - a ** 2) * din
 
 
-class ReLU(Module):
+class ReLU(Activation):
+    def __init__(self):
+        """ReLU
+        """
+        super().__init__()
+        self.reset_cache()
+
     def __str__(self):
         return "ReLU()"
 
     def forward(self, x):
-        self.a = np.maximum(0, x)
-        return self.a
-        
-    def backward(self, din, a_cache=None):
-        a_cache = self.a if a_cache is None else a_cache
-        return din * (a_cache > 0).astype(a_cache.dtype)
+        a = np.maximum(0, x)
+        self.update_cache(a)
+        return a
+
+    def backward(self, din):
+        a = self.cache['value']
+        return din * (a > 0).astype(a.dtype)
         
 
-class Softplus(Module):
+class Softplus(Activation):
+    def __init__(self):
+        """Softplus
+        """
+        super().__init__()
+        self.reset_cache()
+
     def __str__(self):
         return "Softplus()"
 
     def forward(self, x):
-        self.g = np.exp(x) + 1
-        return np.log(self.g)
+        g = np.exp(x) + 1
+        self.update_cache(g)
+        return np.log(g)
 
-    def backward(self, din, g_cache=None):
-        g_cache = self.g if g_cache is None else g_cache
-        return din * 1 - g_cache ** (-1)
+    def backward(self, din):
+        g = self.cache['value']
+        return din * 1 - g ** (-1)
 
 
-class Softmax(Module):
+class Softmax(Activation):
+    def __init__(self):
+        """Softmax
+        """
+        super().__init__()
+        self.reset_cache()
+
     def __str__(self): 
         return "Softmax()"
     
     def forward(self, x):
         x_shifted = x - np.max(x)
         x_exp = np.exp(x_shifted)
-        self.a = x_exp / x_exp.sum(axis=-1, keepdims=True)
-        return self.a
-        
-    def backward(self, din, cache=None):
+        a = x_exp / x_exp.sum(axis=-1, keepdims=True)
+        return a
+
+    def backward(self, din):
         return din
-        

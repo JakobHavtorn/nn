@@ -16,6 +16,11 @@ class Module():
         self._buffers = OrderedDict()
         self.training = True
 
+    def reset_cache(self):
+        """Reset the cache of the module
+        """
+        self.cache = dict()
+
     def train(self, mode=True):
         """Recursively sets the traiing mode to `mode` for all submodules.
         """
