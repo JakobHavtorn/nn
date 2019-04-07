@@ -163,6 +163,7 @@ The learning curves are seen below.
 ![](examples/results/mnist/readme_accuracy_cnn.png "Training and validation accuracy")
 
 ## Sources
+- A nice [blog post](https://medium.com/@eisenjulian/neural-networks-in-100-lines-of-pure-python-a30217ce7609) on neural networks in 100 lines of Python.
 - Some inspiration has been found at the DTU PhD Deep Learning Summer School 2015, see [website](http://deeplearningdtu.github.io/Summerschool_2015/) and [github repository](https://github.com/DeepLearningDTU/Summerschool_2015/).
 - The batch normalization layer has been inspired by https://github.com/martinkersner/cs231n/blob/master/assignment2/layers.py)
 - The convolutional layer has been inspired by https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
