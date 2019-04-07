@@ -60,10 +60,7 @@ class BatchNorm1D(Module):
             batch_mean = np.mean(x, axis=0)
             batch_var = np.var(x, axis=0)
             x_norm = (x - batch_mean) / np.sqrt(batch_var + self.eps)
-            if self.affine:  # TODO Move out of if
-                x_out = x_norm * self.gamma.data + self.beta.data
-            else:
-                x_out = x_norm
+
             # Update running mean and variance
             if self.momentum is None:
                 # Cumulative moving average
@@ -77,10 +74,10 @@ class BatchNorm1D(Module):
         else:
             batch_mean, batch_var = None, None
             x_norm = (x - self.running_mean) / np.sqrt(self.running_var + self.eps)
-            if self.affine:  # TODO Move out of if
-                x_out = x_norm * self.gamma.data + self.beta.data
-            else:
-                x_out = x_norm
+        if self.affine:
+            x_out = x_norm * self.gamma.data + self.beta.data
+        else:
+            x_out = x_norm
         # Cache
         self.update_cache(x, x_norm, batch_mean, batch_var)
         return x_out
