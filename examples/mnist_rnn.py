@@ -6,7 +6,6 @@ import numpy as np
 
 from context import nn, optim, utils
 from loaders import get_loaders
-from models import RNNClassifier
 
 
 class RNNClassifier(nn.Module):
