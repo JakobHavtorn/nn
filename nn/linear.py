@@ -1,13 +1,10 @@
-import IPython
 import numpy as np
 
 from .module import Module
 from .parameter import Parameter
 
 
-# TODO Transpose linear W
-# TODO Make caches lists
-# TODO When backpropping loop over cached elements and accumulate gradients
+# TODO Transpose W matrix
 
 
 class Linear(Module):
@@ -32,7 +29,7 @@ class Linear(Module):
         Whether or not to include a bias (the default is True)
     """
     def __init__(self, in_features, out_features, bias=True):
-        super(Linear, self).__init__()
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.W = Parameter(np.zeros([in_features, out_features]))
