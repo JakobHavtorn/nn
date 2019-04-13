@@ -22,11 +22,12 @@ class Dropout(Module):
         if self.training:
             mask = np.random.random(x.shape) > self.p
             scale = 1.0 / (1-self.p)
-            self.a = x*mask*scale
-            return self.a
+            a = x * mask * scale
+            self.cache = dict(a=a)
+            return a
         else:
             return x
 
     def backward(self, delta_in):
-        delta_out = delta_in*self.a
+        delta_out = delta_in * self.cache['a']
         return delta_out
