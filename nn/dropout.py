@@ -1,3 +1,4 @@
+import IPython
 import numpy as np
 
 from .module import Module
@@ -26,8 +27,7 @@ class Dropout(Module):
             a = x * mask * scale
             self.cache = dict(a=a)
             return a
-        else:
-            return x
+        return x
 
     def backward(self, delta_in):
         delta_out = delta_in * self.cache['a']
