@@ -17,12 +17,12 @@ class Sigmoid(Activation):
 
     def __str__(self): 
         return "Sigmoid()"
-    
+
     def forward(self, x):
         a = 1.0 / (1 + np.exp(-x))
         self.update_cache(a)
         return a
-        
+
     def backward(self, din):
         a = self.cache['value']
         return a * (1 - a) * din
@@ -66,7 +66,7 @@ class ReLU(Activation):
     def backward(self, din):
         a = self.cache['value']
         return din * (a > 0).astype(a.dtype)
-        
+
 
 class Softplus(Activation):
     def __init__(self):
@@ -97,7 +97,7 @@ class Softmax(Activation):
 
     def __str__(self): 
         return "Softmax()"
-    
+
     def forward(self, x):
         x_shifted = x - np.max(x)
         x_exp = np.exp(x_shifted)
