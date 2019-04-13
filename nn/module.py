@@ -245,8 +245,8 @@ class Module():
     def reset_parameters(self):
         raise NotImplementedError()
 
-    def forward(self, input, *args):
+    def forward(self, input):
         raise NotImplementedError()
 
-    def backward(self, delta_in, *args):
+    def backward(self, delta_in):
         raise NotImplementedError()
