@@ -26,21 +26,19 @@ class FNNClassifier(nn.Module):
     dropout : bool or float
         Whether or not to include dropout and the dropout probability to use.
     """
-
     def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, batchnorm=False, dropout=False):
         super(FNNClassifier, self).__init__()
         dims = [in_features, *hidden_dims, out_classes]
         for i in range(len(dims) - 1):
-            is_output_layer = i == len(dims) - 2
-            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
-            if batchnorm and not is_output_layer:
-                self.add_module("batchnorm_" + str(i), nn.BatchNorm1D(dims[i+1]))
-            if dropout and not is_output_layer:
-                self.add_module("dropout_" + str(i), nn.Dropout(p=dropout))
-            if not is_output_layer:
-                self.add_module("activation_" + str(i), activation())
-            else:
-                self.add_module("activation_" + str(i), nn.Softmax())
+            if batchnorm:
+                self.add_module('batchnorm_' + str(i), nn.BatchNorm1D(dims[i+1]))
+            if dropout:
+                self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
+            if i > 0:
+                self.add_module('activation_' + str(i), activation())
+            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1]))
+
+        self.add_module('activation_' + str(i), nn.Softmax())
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
@@ -59,7 +57,7 @@ if __name__ == '__main__':
     classifier.summarize()
     # Dataset
     save_dir = './results/mnist/'
-    dataset_name = "MNIST"
+    dataset_name = 'MNIST'
     batch_size = 250
     num_epochs = 10
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
