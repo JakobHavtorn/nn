@@ -49,7 +49,7 @@ class Conv2D(Module):
     """
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):
-        super(Conv2D, self).__init__()
+        super().__init__()
         assert isinstance(kernel_size, tuple), 'Please specifiy kernel size in each dimension as a tuple.'
         self.in_channels = int(in_channels)
         self.out_channels = int(out_channels)
@@ -64,7 +64,7 @@ class Conv2D(Module):
         self.reset_parameters()
         self.reset_cache()
 
-    def __str__(self): 
+    def __str__(self):
         return f'Conv2D(in_channels={self.in_channels:d}, out_channels={self.out_channels:d}, ' \
                f'kernel=({self.kernel_size[0]:d},{self.kernel_size[1]:d}), stride={self.stride:d}, ' \
                f'padding={self.padding:d}, bias={self.b is not None})'
