@@ -13,8 +13,8 @@ from .progress import ProgressBar
 from .utils import onehot
 
 
-class Trainer(object):
-    """A Solver encapsulates all the logic necessary for training classification
+class Trainer():
+    """A Trainer encapsulates all the logic necessary for training classification
     models. The Solver performs stochastic gradient descent using different
     update rules defined in optim.py.
 
@@ -34,7 +34,6 @@ class Trainer(object):
     of all losses encountered during training and solver.train_acc_history will contain
     the associated classification accuracies.
     """
-
     def __init__(self, model, train_loader, val_loader, optimizer, loss, **kwargs):
         """Construct a new Solver instance.
 
@@ -81,6 +80,31 @@ class Trainer(object):
         if len(kwargs) > 0:
             extra = ', '.join('"%s"' % k for k in list(kwargs.keys()))
             raise ValueError('Unrecognized arguments %s' % extra)
+
+
+class ClassificationTrainer(Trainer):
+    """A Trainer encapsulates all the logic necessary for training classification
+    models. The Solver performs stochastic gradient descent using different
+    update rules defined in optim.py.
+
+    The solver accepts both training and validataion data and labels so it can
+    periodically check classification accuracy on both training and validation
+    data to watch out for overfitting.
+
+    To train a model, first construct a Solver instance, passing the
+    model, dataset, optimizer, loss and various options (number of epochs, checkpoints,
+     etc.) to the constructor. Then call the train() method to run the optimization
+    procedure and train the model.
+
+    After the train() method returns, the model will contain the parameters
+    that performed best on the validation set over the course of training.
+    
+    In addition, the instance variable solver.train_loss_history will contain a list
+    of all losses encountered during training and solver.train_acc_history will contain
+    the associated classification accuracies.
+    """
+    def __init__(self, model, train_loader, val_loader, optimizer, loss, **kwargs):
+        super().__init__(model, train_loader, val_loader, optimizer, loss, **kwargs)
         self._reset()
 
     def _reset(self):
