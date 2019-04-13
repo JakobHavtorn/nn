@@ -48,7 +48,7 @@ class CrossEntropyLoss(Module):
         return "CrossEntropyLoss()"
 
     def forward(self, y, t, eps=1e-8):
-        return - np.mean(np.log(y[t] + eps), axis=-1)
+        return - np.mean(np.log(y[t.astype(bool)] + eps), axis=-1)
 
     def backward(self, y, t):
         delta_out = (1.0 / y.shape[0]) * (y - t)

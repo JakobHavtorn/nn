@@ -1,11 +1,11 @@
 import os
 
-import IPython
 import matplotlib.pyplot as plt
 import numpy as np
 
 from context import nn, optim, utils
-from loaders import get_loaders
+from utils.constants import SAVE_DIR
+from utils.utils import get_loaders
 
 
 class FNNClassifier(nn.Module):
@@ -36,9 +36,8 @@ class FNNClassifier(nn.Module):
                 self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
             if i > 0:
                 self.add_module('activation_' + str(i), activation())
-            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1]))
-
-        self.add_module('activation_' + str(i), nn.Softmax())
+            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1], bias=True))
+        self.add_module('activation_' + str(i+1), nn.Softmax())
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
@@ -56,7 +55,6 @@ if __name__ == '__main__':
     classifier = FNNClassifier(28 * 28, 10, hidden_dims=[512, 256, 128], activation=nn.ReLU, batchnorm=True, dropout=False)
     classifier.summarize()
     # Dataset
-    save_dir = './results/mnist/'
     dataset_name = 'MNIST'
     batch_size = 250
     num_epochs = 10
@@ -66,9 +64,10 @@ if __name__ == '__main__':
     # Loss
     loss = nn.CrossEntropyLoss()
     # Train
-    trainer = utils.Trainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+    trainer = utils.trainers.ClassificationTrainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
     trainer.train()
 
+    save_dir = os.path.join(SAVE_DIR, dataset_name)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 

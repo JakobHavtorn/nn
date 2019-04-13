@@ -14,6 +14,7 @@ class Dropout(Module):
     def __init__(self, p=0.5):
         super(Dropout, self).__init__()
         self.p = p
+        self.cache = dict(a=None)
 
     def __str__(self): 
         return "Dropout({:.2f})".format(self.p)
