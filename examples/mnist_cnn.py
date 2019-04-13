@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # Loss
     loss = nn.CrossEntropyLoss()
     # Train
-    trainer = utils.Trainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+    trainer = utils.ClassificationTrainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
     trainer.train()
 
     if not os.path.exists(save_dir):
