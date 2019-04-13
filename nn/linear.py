@@ -51,9 +51,6 @@ class Linear(Module):
         if self.b is not None:
             self.b.data = np.zeros(self.b.shape)
 
-    def update_cache(self, x):
-        
-
     def forward(self, x):
         z = np.dot(x, self.W.data)
         if self.b is not None:
