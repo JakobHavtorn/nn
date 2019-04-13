@@ -31,7 +31,7 @@ class FNNClassifier(nn.Module):
         dims = [in_features, *hidden_dims, out_classes]
         for i in range(len(dims) - 1):
             if batchnorm:
-                self.add_module('batchnorm_' + str(i), nn.BatchNorm1D(dims[i+1]))
+                self.add_module('batchnorm_' + str(i), nn.BatchNorm1D(dims[i]))
             if dropout:
                 self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
             if i > 0:
