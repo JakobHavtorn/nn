@@ -188,7 +188,6 @@ class Module():
     def __setattr__(self, name, value):
         """Sets model parameter attributes by setting them in the _parameters dictionary attribute
         """
-
         def remove_from(*dicts):
             for d in dicts:
                 if name in d:
