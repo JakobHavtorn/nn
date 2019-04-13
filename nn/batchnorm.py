@@ -13,16 +13,15 @@ class BatchNorm1D(Module):
 
         If `momentum` is larger than zero, then a moving average of batch statistics is maintained and used for
         normalization. If not, new statistics are recomputed for every batch.
-        
+
         Arguments:
             num_features {int} -- The size of the 1D activation space.
-        
+
         Keyword Arguments:
             momentum {float} -- The exponential moving average momentum to use for running statistics (default: {0.1})
             affine {bool} -- Whether or to apply an elementwise affine transformation (default: {True})
             eps {float} -- A small constant added to square root computations. (default: {1e-5})
         """
-
         super(BatchNorm1D, self).__init__()
         self.num_features = num_features
         self.eps = eps
@@ -36,7 +35,7 @@ class BatchNorm1D(Module):
         self.cache = dict(x=None)
         self.reset_parameters()
 
-    def __str__(self): 
+    def __str__(self):
         return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine}'
 
     def reset_running_stats(self):
