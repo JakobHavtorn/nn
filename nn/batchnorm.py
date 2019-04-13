@@ -6,20 +6,35 @@ from .parameter import Parameter
 
 
 class BatchNorm1D(Module):
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True):
+    def __init__(self, num_features, momentum=0.1, affine=True, eps=1e-5):
+        """Batch normalization layer normalizes the activations of the predeciding layer.
+
+        If `affine` is true, then an elementwise affine transformation is applied after the normalization.
+
+        If `momentum` is larger than zero, then a moving average of batch statistics is maintained and used for
+        normalization. If not, new statistics are recomputed for every batch.
+        
+        Arguments:
+            num_features {int} -- The size of the 1D activation space.
+        
+        Keyword Arguments:
+            momentum {float} -- The exponential moving average momentum to use for running statistics (default: {0.1})
+            affine {bool} -- Whether or to apply an elementwise affine transformation (default: {True})
+            eps {float} -- A small constant added to square root computations. (default: {1e-5})
+        """
+
         super(BatchNorm1D, self).__init__()
         self.num_features = num_features
         self.eps = eps
         self.momentum = momentum
         self.affine = affine
-        self.track_running_stats = track_running_stats
         if self.affine:
             self.gamma = Parameter(np.zeros(num_features))
             self.beta = Parameter(np.zeros(num_features))
         else:
             self.gamma = None
             self.beta = None
-        if self.track_running_stats:
+        if self.momentum == 0.0:
             self.running_mean = np.zeros(num_features)
             self.running_var = np.ones(num_features)
             self.num_batches_tracked = 0
@@ -30,10 +45,10 @@ class BatchNorm1D(Module):
         self.reset_parameters()
 
     def __str__(self): 
-        return "BatchNorm({:d}, momentum={:3.2f}, affine={}, track={})".format(self.num_features, self.momentum, self.affine, self.track_running_stats)
+        return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine}'
 
     def reset_running_stats(self):
-        if self.track_running_stats:
+        if self.moving:
             self.running_mean = np.zeros(self.running_mean.shape)
             self.running_var = np.ones(self.running_var.shape)
             self.num_batches_tracked = 0
@@ -53,8 +68,6 @@ class BatchNorm1D(Module):
             self.cache.update(dict(batch_mean=batch_mean, batch_var=batch_var))
 
     def forward(self, x):
-        if self.training and self.track_running_stats:
-            self.num_batches_tracked += 1
         if self.training:
             # Compute batch mean and variance and normalize x
             batch_mean = np.mean(x, axis=0)
@@ -63,6 +76,7 @@ class BatchNorm1D(Module):
 
             # Update running mean and variance
             if self.momentum is None:
+                self.num_batches_tracked += 1
                 # Cumulative moving average
                 momentum = 1 - 1.0 / self.num_batches_tracked
                 self.running_mean = momentum * self.running_mean + (1 - momentum) * batch_mean
@@ -74,10 +88,13 @@ class BatchNorm1D(Module):
         else:
             batch_mean, batch_var = None, None
             x_norm = (x - self.running_mean) / np.sqrt(self.running_var + self.eps)
+
+        # Affine transformation
         if self.affine:
             x_out = x_norm * self.gamma.data + self.beta.data
         else:
             x_out = x_norm
+
         # Cache
         self.update_cache(x, x_norm, batch_mean, batch_var)
         return x_out
