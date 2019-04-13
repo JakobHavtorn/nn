@@ -28,27 +28,19 @@ class BatchNorm1D(Module):
         self.eps = eps
         self.momentum = momentum
         self.affine = affine
-        if self.affine:
-            self.gamma = Parameter(np.zeros(num_features))
-            self.beta = Parameter(np.zeros(num_features))
-        else:
-            self.gamma = None
-            self.beta = None
-        if self.momentum == 0.0:
-            self.running_mean = np.zeros(num_features)
-            self.running_var = np.ones(num_features)
-            self.num_batches_tracked = 0
-        else:
-            self.running_mean = None
-            self.running_var = None
-            self.num_batches_tracked = None
+        self.gamma = Parameter(np.zeros(num_features)) if self.affine else None
+        self.beta = Parameter(np.zeros(num_features)) if self.affine else None
+        self.running_mean = np.zeros(num_features) if self.momentum > 0 else None
+        self.running_var = np.ones(num_features) if self.momentum > 0 else None
+        self.num_batches_tracked = 0
+        self.cache = dict(x=None)
         self.reset_parameters()
 
     def __str__(self): 
         return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine}'
 
     def reset_running_stats(self):
-        if self.moving:
+        if self.momentum == 0.0:
             self.running_mean = np.zeros(self.running_mean.shape)
             self.running_var = np.ones(self.running_var.shape)
             self.num_batches_tracked = 0
@@ -90,10 +82,7 @@ class BatchNorm1D(Module):
             x_norm = (x - self.running_mean) / np.sqrt(self.running_var + self.eps)
 
         # Affine transformation
-        if self.affine:
-            x_out = x_norm * self.gamma.data + self.beta.data
-        else:
-            x_out = x_norm
+        x_out = x_norm * self.gamma.data + self.beta.data if self.affine else x_norm
 
         # Cache
         self.update_cache(x, x_norm, batch_mean, batch_var)
