@@ -111,3 +111,6 @@ results
 
 # DS files
 .DS_Store
+
+# VS Code
+.vscode
