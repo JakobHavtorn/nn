@@ -50,17 +50,17 @@ class Linear(Module):
         self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
         if self.b is not None:
             self.b.data = np.zeros(self.b.shape)
-        
+
     def update_cache(self, x):
-        self.cache = dict(x=x)
+        
 
     def forward(self, x):
         z = np.dot(x, self.W.data)
         if self.b is not None:
             z += self.b.data
-        self.update_cache(x)
+        self.cache = dict(x=x)
         return z
-        
+
     def backward(self, delta):
         x = self.cache['x']
         self.W.grad += np.dot(x.T, delta)
