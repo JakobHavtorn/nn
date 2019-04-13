@@ -37,21 +37,17 @@ class CNNClassifier(nn.Module):
         self.add_module("convolutional_1", nn.Conv2D(feature_maps[0], feature_maps[1], kernel_size=(5, 5)))
         # self.add_module("Batchnorm1", nn.BatchNorm2D(64))
         self.add_module("maxpool_1", nn.MaxPool2D(kernel_size=(2, 2), stride=2, padding=0))
-        self.add_module("activation_1", activation())
-        self.add_module("flatte_n", nn.Flatten())
+        self.add_module("flatten_1", nn.Flatten())
         # Feedforward classifier
         dims = [*hidden_dims, out_classes]
         for i in range(len(dims) - 1):
-            is_output_layer = i == len(dims) - 2
             if batchnorm:
                 self.add_module("batchnorm_" + str(i), nn.BatchNorm1D(dims[i]))
-            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
-            if dropout and not is_output_layer:
+            if dropout:
                 self.add_module("dropout_" + str(i), nn.Dropout(p=dropout))
-            if not is_output_layer:
-                self.add_module("activation_" + str(i+2), activation())
-            else:
-                self.add_module("activation_" + str(i+2), nn.Softmax())
+            self.add_module("activation_" + str(i+2), activation())
+            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
+        self.add_module("activation_" + str(i+2), nn.Softmax())
 
     def forward(self, x):
         for module in self._modules.values():
