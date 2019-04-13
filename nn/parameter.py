@@ -16,7 +16,7 @@ class Parameter(object):
         p = Parameter(self.data.copy())
         p.grad = self.grad.copy()
         return p
-    
+
     def __repr__(self):
         s = "Parameter containing:\n"
         s += self.data.__repr__()
@@ -28,50 +28,80 @@ class Parameter(object):
         s += "\n"
         return s
 
+    @staticmethod
+    def get_data_array(other):
+        if isinstance(other, Parameter):
+            return other.data
+        elif isinstance(other, (np.ndarray, float, int)):
+            return other
+        else:
+            raise TypeError(f'Unknown type of other {type(other)}')
+
+    def __getitem__(self, *args, **kwargs):
+        return np.ndarray.__getitem__(self.data, *args, **kwargs)
+
+    def __setitem__(self, *args, **kwargs):
+        return np.ndarray.__setitem__(self.data, *args, **kwargs)
+
     def __add__(self, other):
-        return np.add(self.data, other)
+        data_array = self.get_data_array(other)
+        return np.add(self.data, data_array)
 
     def __sub__(self, other):
-        return np.subtract(self.data, other)
+        data_array = self.get_data_array(other)
+        return np.subtract(self.data, data_array)
 
     def __mul__(self, other):
-        return np.multiply(self.data, other)
+        data_array = self.get_data_array(other)
+        return np.multiply(self.data, data_array)
 
     def __truediv__(self, other):
-        return np.divide(self.data, other)
+        data_array = self.get_data_array(other)
+        return np.divide(self.data, data_array)
 
     def __pow__(self, other):
-        return np.power(self.data, other)
+        data_array = self.get_data_array(other)
+        return np.power(self.data, data_array)
 
     def __radd__(self, other):
-        raise NotImplementedError()
+        data_array = self.get_data_array(other)
+        return self.__add__(data_array)
 
     def __rsub__(self, other):
-        raise NotImplementedError()
+        data_array = self.get_data_array(other)
+        return self.__sub__(data_array)
 
     def __rmul__(self, other):
-        raise NotImplementedError()
+        data_array = self.get_data_array(other)
+        return self.__mul__(data_array)
 
     def __rdiv__(self, other):
-        raise NotImplementedError()
+        data_array = self.get_data_array(other)
+        return np.divide(data_array, self.data)
 
     def __rpow__(self, other):
-        raise NotImplementedError()
+        data_array = self.get_data_array(other)
+        return np.power(data_array, self.data)
 
     def __iadd__(self, other):
-        return np.add(self.data, other, out=self.data)
+        data_array = self.get_data_array(other)
+        return np.add(self.data, data_array, out=self.data)
 
     def __isub__(self, other):
-        return np.subtract(self.data, other, out=self.data)
+        data_array = self.get_data_array(other)
+        return np.subtract(self.data, data_array, out=self.data)
 
     def __imul__(self, other):
-        return np.multiply(self.data, other, out=self.data)
+        data_array = self.get_data_array(other)
+        return np.multiply(self.data, data_array, out=self.data)
 
     def __idiv__(self, other):
-        return np.divide(self.data, other, out=self.data)
+        data_array = self.get_data_array(other)
+        return np.divide(self.data, data_array, out=self.data)
 
     def __ipow__(self, other):
-        return np.power(self.data, other, out=self.data)
+        data_array = self.get_data_array(other)
+        return np.power(self.data, data_array, out=self.data)
 
 """
 Overview of Magic Methods
