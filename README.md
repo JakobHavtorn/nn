@@ -169,12 +169,12 @@ The above FNN classifier without batchnorm and dropout as well as the CNN classi
 The learning curves are seen below.
 
 ### FNN
-![](examples/results/mnist/readme_loss_fnn.png "Training and validation negative log likelihood loss")
-![](examples/results/mnist/readme_accuracy_fnn.png "Training and validation accuracy")
+![](_README/readme_loss_fnn.png "Training and validation negative log likelihood loss")
+![](_README/readme_accuracy_fnn.png "Training and validation accuracy")
 
 ### CNN
-![](examples/results/mnist/readme_loss_cnn.png "Training and validation negative log likelihood loss")
-![](examples/results/mnist/readme_accuracy_cnn.png "Training and validation accuracy")
+![](_README/readme_loss_cnn.png "Training and validation negative log likelihood loss")
+![](_README/readme_accuracy_cnn.png "Training and validation accuracy")
 
 ## Sources
 - A nice [blog post](https://medium.com/@eisenjulian/neural-networks-in-100-lines-of-pure-python-a30217ce7609) on neural networks in 100 lines of Python.
