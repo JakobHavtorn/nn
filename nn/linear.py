@@ -42,10 +42,10 @@ class Linear(Module):
         return "Linear({:d}, {:d}, bias={})".format(self.in_features, self.out_features, self.b is not None)
 
     def reset_parameters(self):
-        stdv = 1.0 / np.sqrt(self.W.shape[0])
+        stdv = 1.0 / np.sqrt(self.in_features)
         self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
         if self.b is not None:
-            self.b.data = np.zeros(self.b.shape)
+            self.b.data = np.random.uniform(-stdv, stdv, self.b.shape)
 
     def forward(self, x):
         z = np.dot(x, self.W.data.T)
@@ -91,7 +91,7 @@ class BiLinear(Module):
         self.in_features_1 = in_features_1
         self.in_features_2 = in_features_2
         self.out_features = out_features
-        self.W = Parameter(np.zeros([out_features, in_features_1, in_features_2]))
+        self.W = Parameter(np.zeros([in_features_1, out_features, in_features_2]))
         if bias:
             self.b = Parameter(np.zeros(out_features))
         else:
@@ -99,13 +99,29 @@ class BiLinear(Module):
         self.cache = dict(x1=None, x2=None)
         self.reset_parameters()
 
+    def __str__(self): 
+        return f'BiLinear(in_features_1={self.in_features_1:d}, in_features_2={self.in_features_2:d},' \
+               f'out_features={self.out_features:d} bias={self.b is not None})'
+
+    def reset_parameters(self):
+        stdv = 1.0 / np.sqrt(self.in_features_1 + self.in_features_2)
+        self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
+        if self.b is not None:
+            self.b.data = np.random.uniform(-stdv, stdv, self.b.shape)
+
     def forward(self, x1, x2):
         self.x1 = x1
         self.x2 = x2
-        z = x1 @ self.W @ x2
+        # (in1, out, in2) x (in2) --> (in1, out)
+        # (in1) x (in1, out) --> (out)
+        z = np.dot(x1, np.dot(self.W.data, x2.T))
         if self.b is not None:
             z += self.b
         
         self.cache = dict(x1=x1, x2=x2)
 
     def backward(self, delta):
+        pass
+        # y = x_1 W x_2 + b\\
+        # \frac{dy}{dx_1} = Wx_2\\
+        # \frac{dy}{dx_2} = x_1 W
