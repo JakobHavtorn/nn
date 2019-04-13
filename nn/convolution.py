@@ -50,7 +50,7 @@ class Conv2D(Module):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):
         super(Conv2D, self).__init__()
-        assert type(kernel_size) is tuple, "Please specifiy kernel size in each dimension as a tuple."
+        assert isinstance(kernel_size, tuple), 'Please specifiy kernel size in each dimension as a tuple.'
         self.in_channels = int(in_channels)
         self.out_channels = int(out_channels)
         self.stride = int(stride)
@@ -65,8 +65,9 @@ class Conv2D(Module):
         self.reset_cache()
 
     def __str__(self): 
-        return "Conv2D(in_channels={:d}, out_channels={:d}, kernel=({:d},{:d}), stride={:d}, padding={:d}, bias={})".format(
-            self.in_channels, self.out_channels, self.kernel_size[0], self.kernel_size[1], self.stride, self.padding, self.b is not None)
+        return f'Conv2D(in_channels={self.in_channels:d}, out_channels={self.out_channels:d}, ' \
+               f'kernel=({self.kernel_size[0]:d},{self.kernel_size[1]:d}), stride={self.stride:d}, ' \
+               f'padding={self.padding:d}, bias={self.b is not None})'
 
     def reset_parameters(self):
         n = self.in_channels
@@ -97,23 +98,22 @@ class Conv2D(Module):
         S = S.reshape(self.out_channels, h_out, w_out, N)
         S = S.transpose(3, 0, 1, 2)
         # Cache
-        self.cache += dict(X_shape=X.shape, X_col=X_col)
+        self.cache = dict(X_shape=X.shape, X_col=X_col)
         return S
 
     def backward(self, dout):
-        for element in self.cache:
-            X_shape, X_col = element['X_shape'], element['X_col']
-            N, C, H, W = X_shape
-            # Bias gradient
-            if self.b is not None:
-                self.b.grad += np.sum(dout, axis=(0, 2, 3)).reshape(self.out_channels, -1)
-            # Kernel gradient
-            dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(self.out_channels, -1)
-            self.K.grad += (dout_reshaped @ X_col.T).reshape(self.K.shape)
-            # Input gradient
-            K_col = self.K.data.reshape(self.out_channels, -1)
-            dX_col = K_col.T @ dout_reshaped
-            dX = col2im_cython(dX_col, N, C, H, W, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
-            # dX = col2im_indices(dX_col, X_shape, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
-            self.reset_cache()
+        X_shape, X_col = self.cache['X_shape'], self.cache['X_col']
+        N, C, H, W = X_shape
+        # Bias gradient
+        if self.b is not None:
+            self.b.grad += np.sum(dout, axis=(0, 2, 3)).reshape(self.out_channels, -1)
+        # Kernel gradient
+        dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(self.out_channels, -1)
+        self.K.grad += (dout_reshaped @ X_col.T).reshape(self.K.shape)
+        # Input gradient
+        K_col = self.K.data.reshape(self.out_channels, -1)
+        dX_col = K_col.T @ dout_reshaped
+        dX = col2im_cython(dX_col, N, C, H, W, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        # dX = col2im_indices(dX_col, X_shape, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
+        self.reset_cache()
         return dX
