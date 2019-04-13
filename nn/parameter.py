@@ -34,8 +34,7 @@ class Parameter(object):
             return other.data
         elif isinstance(other, (np.ndarray, float, int)):
             return other
-        else:
-            raise TypeError(f'Unknown type of other {type(other)}')
+        raise TypeError(f'Unknown type of other {type(other)}')
 
     def __getitem__(self, *args, **kwargs):
         return np.ndarray.__getitem__(self.data, *args, **kwargs)
