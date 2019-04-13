@@ -1,10 +1,8 @@
+import IPython
 import numpy as np
 
 from .module import Module
 from .parameter import Parameter
-
-
-# TODO Transpose W matrix
 
 
 class Linear(Module):
@@ -32,24 +30,25 @@ class Linear(Module):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.W = Parameter(np.zeros([in_features, out_features]))
+        self.W = Parameter(np.zeros([out_features, in_features]))
         if bias:
             self.b = Parameter(np.zeros(out_features))
         else:
             self.b = None
+        self.cache = dict(x=None)
         self.reset_parameters()
 
     def __str__(self): 
         return "Linear({:d}, {:d}, bias={})".format(self.in_features, self.out_features, self.b is not None)
 
     def reset_parameters(self):
-        stdv = 1.0 / np.sqrt(self.W.shape[1])
+        stdv = 1.0 / np.sqrt(self.W.shape[0])
         self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
         if self.b is not None:
             self.b.data = np.zeros(self.b.shape)
 
     def forward(self, x):
-        z = np.dot(x, self.W.data)
+        z = np.dot(x, self.W.data.T)
         if self.b is not None:
             z += self.b.data
         self.cache = dict(x=x)
@@ -57,8 +56,8 @@ class Linear(Module):
 
     def backward(self, delta):
         x = self.cache['x']
-        self.W.grad += np.dot(x.T, delta)
-        dx = np.dot(delta, self.W.data.T)
+        self.W.grad += np.dot(delta.T, x)
+        dx = np.dot(delta, self.W.data)
         if self.b is not None:
             self.b.grad += delta.sum(axis=0)
         return dx
@@ -97,6 +96,7 @@ class BiLinear(Module):
             self.b = Parameter(np.zeros(out_features))
         else:
             self.b = None
+        self.cache = dict(x1=None, x2=None)
         self.reset_parameters()
 
     def forward(self, x1, x2):
@@ -105,3 +105,7 @@ class BiLinear(Module):
         z = x1 @ self.W @ x2
         if self.b is not None:
             z += self.b
+        
+        self.cache = dict(x1=x1, x2=x2)
+
+    def backward(self, delta):
