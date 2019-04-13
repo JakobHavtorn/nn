@@ -52,7 +52,7 @@ class FNNClassifier(nn.Module):
 
 if __name__ == '__main__':
     # Model
-    classifier = FNNClassifier(28 * 28, 10, hidden_dims=[512, 256, 128], activation=nn.ReLU, batchnorm=True, dropout=False)
+    classifier = FNNClassifier(28 * 28, 10, hidden_dims=[64, 32, 16], activation=nn.ReLU, batchnorm=True, dropout=False)
     classifier.summarize()
     # Dataset
     dataset_name = 'MNIST'
@@ -88,5 +88,5 @@ if __name__ == '__main__':
     a.set_xlabel('Iteration')
     a.set_ylabel('Classification accuracy')
     a.legend(['Training', 'Validation'])
-    f.savefig('./results/mnist/accuracy_fnn.pdf', bbox_inches='tight')
-    f.savefig('./results/mnist/accuracy_fnn.png', bbox_inches='tight')
+    f.savefig(save_dir + '/accuracy_fnn.pdf', bbox_inches='tight')
+    f.savefig(save_dir + '/accuracy_fnn.png', bbox_inches='tight')
