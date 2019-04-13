@@ -15,7 +15,7 @@ def get_loaders(dataset_name, batch_size):
     val_set_kwargs = {'train': False, 'download': True, 'transform': transform}
     train_set = dataset(DATA_DIR, **train_set_kwargs)
     val_set = dataset(DATA_DIR, **val_set_kwargs)
-    
+
     # Create dataset and DataLoader
     train_loader_kwargs = {'batch_size': batch_size, 'shuffle': True}
     val_loader_kwargs = {'batch_size': batch_size, 'shuffle': True}
