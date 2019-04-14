@@ -5,8 +5,6 @@ class Parameter(object):
     def __init__(self, data):
         self.data = data
         self.grad = np.zeros_like(data)
-        # Gradient could be implemented lazily but that requires overloading
-        # the `+=` etc. operators
 
     @property
     def shape(self):
@@ -42,65 +40,65 @@ class Parameter(object):
     def __setitem__(self, *args, **kwargs):
         return np.ndarray.__setitem__(self.data, *args, **kwargs)
 
-    def __add__(self, other):
-        data_array = self.get_data_array(other)
-        return np.add(self.data, data_array)
+    # def __add__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.add(self.data, data_array)
 
-    def __sub__(self, other):
-        data_array = self.get_data_array(other)
-        return np.subtract(self.data, data_array)
+    # def __sub__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.subtract(self.data, data_array)
 
-    def __mul__(self, other):
-        data_array = self.get_data_array(other)
-        return np.multiply(self.data, data_array)
+    # def __mul__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.multiply(self.data, data_array)
 
-    def __truediv__(self, other):
-        data_array = self.get_data_array(other)
-        return np.divide(self.data, data_array)
+    # def __truediv__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.divide(self.data, data_array)
 
-    def __pow__(self, other):
-        data_array = self.get_data_array(other)
-        return np.power(self.data, data_array)
+    # def __pow__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.power(self.data, data_array)
 
-    def __radd__(self, other):
-        data_array = self.get_data_array(other)
-        return self.__add__(data_array)
+    # def __radd__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return self.__add__(data_array)
 
-    def __rsub__(self, other):
-        data_array = self.get_data_array(other)
-        return self.__sub__(data_array)
+    # def __rsub__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return self.__sub__(data_array)
 
-    def __rmul__(self, other):
-        data_array = self.get_data_array(other)
-        return self.__mul__(data_array)
+    # def __rmul__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return self.__mul__(data_array)
 
-    def __rdiv__(self, other):
-        data_array = self.get_data_array(other)
-        return np.divide(data_array, self.data)
+    # def __rdiv__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.divide(data_array, self.data)
 
-    def __rpow__(self, other):
-        data_array = self.get_data_array(other)
-        return np.power(data_array, self.data)
+    # def __rpow__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.power(data_array, self.data)
 
-    def __iadd__(self, other):
-        data_array = self.get_data_array(other)
-        return np.add(self.data, data_array, out=self.data)
+    # def __iadd__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.add(self.data, data_array, out=self.data)
 
-    def __isub__(self, other):
-        data_array = self.get_data_array(other)
-        return np.subtract(self.data, data_array, out=self.data)
+    # def __isub__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.subtract(self.data, data_array, out=self.data)
 
-    def __imul__(self, other):
-        data_array = self.get_data_array(other)
-        return np.multiply(self.data, data_array, out=self.data)
+    # def __imul__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.multiply(self.data, data_array, out=self.data)
 
-    def __idiv__(self, other):
-        data_array = self.get_data_array(other)
-        return np.divide(self.data, data_array, out=self.data)
+    # def __idiv__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.divide(self.data, data_array, out=self.data)
 
-    def __ipow__(self, other):
-        data_array = self.get_data_array(other)
-        return np.power(self.data, data_array, out=self.data)
+    # def __ipow__(self, other):
+    #     data_array = self.get_data_array(other)
+    #     return np.power(self.data, data_array, out=self.data)
 
 """
 Overview of Magic Methods
