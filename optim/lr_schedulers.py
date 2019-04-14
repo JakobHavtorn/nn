@@ -54,6 +54,7 @@ class ExponentialDecay(LRScheduler):
             self.rate = np.log(2) / half_time
         elif rate is not None:
             self.rate = rate
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         return self.optimizer.lr * self.rate ** self.last_epoch
@@ -85,7 +86,7 @@ class CosineAnnealingLR(LRScheduler):
     def __init__(self, optimizer, T_max, eta_min=0, last_epoch=-1):
         self.T_max = T_max
         self.eta_min = eta_min
-        super(CosineAnnealingLR, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         return self.eta_min + (self.optimizer.lr - self.eta_min) * (1 + np.cos(np.pi * self.last_epoch / self.T_max)) / 2
