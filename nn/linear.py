@@ -99,7 +99,7 @@ class BiLinear(Module):
         self.cache = dict(x1=None, x2=None)
         self.reset_parameters()
 
-    def __str__(self): 
+    def __str__(self):
         return f'BiLinear(in_features_1={self.in_features_1:d}, in_features_2={self.in_features_2:d},' \
                f'out_features={self.out_features:d} bias={self.b is not None})'
 
