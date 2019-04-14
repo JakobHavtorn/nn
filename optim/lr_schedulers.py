@@ -38,7 +38,7 @@ class LRScheduler:
 
 
 class ExponentialDecay(LRScheduler):
-    def __init__(self, rate=None, half_time=10, last_epoch=-1):
+    def __init__(self, optimizer, rate=None, half_time=10, last_epoch=-1):
         """Exponential learning rate decay
         
         Set the learning rate of each parameter group to the initial lr decayed
