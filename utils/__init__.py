@@ -1,3 +1,3 @@
-from .solver import *
+from .trainers import *
 from .utils import *
 from .progress import *

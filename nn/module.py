@@ -16,6 +16,11 @@ class Module():
         self._buffers = OrderedDict()
         self.training = True
 
+    def reset_cache(self):
+        """Reset the cache of the module
+        """
+        self.cache = dict()
+
     def train(self, mode=True):
         """Recursively sets the traiing mode to `mode` for all submodules.
         """
@@ -183,7 +188,6 @@ class Module():
     def __setattr__(self, name, value):
         """Sets model parameter attributes by setting them in the _parameters dictionary attribute
         """
-
         def remove_from(*dicts):
             for d in dicts:
                 if name in d:
@@ -240,8 +244,8 @@ class Module():
     def reset_parameters(self):
         raise NotImplementedError()
 
-    def forward(self, input, *args):
+    def forward(self, input):
         raise NotImplementedError()
 
-    def backward(self, delta_in, *args):
+    def backward(self, delta_in):
         raise NotImplementedError()

@@ -105,3 +105,12 @@ venv.bak/
 
 # data folder
 data
+
+# results folder
+results
+
+# DS files
+.DS_Store
+
+# VS Code
+.vscode

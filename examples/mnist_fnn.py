@@ -1,11 +1,11 @@
 import os
 
-import IPython
 import matplotlib.pyplot as plt
 import numpy as np
 
 from context import nn, optim, utils
-from loaders import get_loaders
+from utils.constants import SAVE_DIR
+from utils.utils import get_loaders
 
 
 class FNNClassifier(nn.Module):
@@ -26,21 +26,18 @@ class FNNClassifier(nn.Module):
     dropout : bool or float
         Whether or not to include dropout and the dropout probability to use.
     """
-
     def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, batchnorm=False, dropout=False):
         super(FNNClassifier, self).__init__()
         dims = [in_features, *hidden_dims, out_classes]
         for i in range(len(dims) - 1):
-            is_output_layer = i == len(dims) - 2
-            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
-            if batchnorm and not is_output_layer:
-                self.add_module("batchnorm_" + str(i), nn.BatchNorm1D(dims[i+1]))
-            if dropout and not is_output_layer:
-                self.add_module("dropout_" + str(i), nn.Dropout(p=dropout))
-            if not is_output_layer:
-                self.add_module("activation_" + str(i), activation())
-            else:
-                self.add_module("activation_" + str(i), nn.Softmax())
+            if batchnorm:
+                self.add_module('batchnorm_' + str(i), nn.BatchNorm1D(dims[i]))
+            if dropout:
+                self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
+            if i > 0:
+                self.add_module('activation_' + str(i), activation())
+            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1], bias=True))
+        self.add_module('activation_' + str(i+1), nn.Softmax())
 
     def forward(self, x):
         x = x.reshape(x.shape[0], -1)
@@ -55,11 +52,10 @@ class FNNClassifier(nn.Module):
 
 if __name__ == '__main__':
     # Model
-    classifier = FNNClassifier(28 * 28, 10, hidden_dims=[512, 256, 128], activation=nn.ReLU, batchnorm=True, dropout=False)
+    classifier = FNNClassifier(28 * 28, 10, hidden_dims=[64, 32, 16], activation=nn.ReLU, batchnorm=True, dropout=False)
     classifier.summarize()
     # Dataset
-    save_dir = './results/mnist/'
-    dataset_name = "MNIST"
+    dataset_name = 'MNIST'
     batch_size = 250
     num_epochs = 10
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
@@ -68,9 +64,10 @@ if __name__ == '__main__':
     # Loss
     loss = nn.CrossEntropyLoss()
     # Train
-    trainer = utils.Trainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+    trainer = utils.trainers.ClassificationTrainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
     trainer.train()
 
+    save_dir = os.path.join(SAVE_DIR, dataset_name)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -91,5 +88,5 @@ if __name__ == '__main__':
     a.set_xlabel('Iteration')
     a.set_ylabel('Classification accuracy')
     a.legend(['Training', 'Validation'])
-    f.savefig('./results/mnist/accuracy_fnn.pdf', bbox_inches='tight')
-    f.savefig('./results/mnist/accuracy_fnn.png', bbox_inches='tight')
+    f.savefig(save_dir + '/accuracy_fnn.pdf', bbox_inches='tight')
+    f.savefig(save_dir + '/accuracy_fnn.png', bbox_inches='tight')
