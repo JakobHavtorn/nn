@@ -54,9 +54,14 @@ if __name__ == '__main__':
     # Dataset
     dataset_name = 'MNIST'
     batch_size = 250
-    max_epochs = 10
+    max_epochs = 20
     max_epochs_no_improvement = 10
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
+
+    # Checkpoint dir
+    checkpoint_dir = os.path.join(SAVE_DIR, dataset_name)
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
 
     # Model
     classifier = FNNClassifier(28 * 28, 10, hidden_dims=[128, 64, 32, 16], activation=nn.ReLU, batchnorm=True, dropout=0.2)
@@ -69,35 +74,17 @@ if __name__ == '__main__':
     # Loss
     loss = nn.CrossEntropyLoss()
 
+    # Learning rate schedule
+    lr_scheduler = None  # optim.CosineAnnealingLR(optimizer, T_max=5, decay_eta_max_half_time=1)
+
     # Evaluators
-    train_evaluator = evaluators.MulticlassEvaluator()
-    val_evaluator = evaluators.MulticlassEvaluator()
+    train_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
+    val_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
 
-
-    trainer = utils.trainers.ClassificationTrainer(classifier, optimizer, loss, train_loader, val_loader, lr_decay=None,
-                                                   max_epochs=max_epochs, max_epochs_no_improvement=max_epochs_no_improvement)
+    # Trainer
+    trainer = utils.trainers.ClassificationTrainer(classifier, optimizer, loss, train_loader, val_loader,
+                                                   train_evaluator, val_evaluator,
+                                                   lr_scheduler=lr_scheduler, max_epochs=max_epochs, 
+                                                   max_epochs_no_improvement=max_epochs_no_improvement, 
+                                                   checkpoint_dir=checkpoint_dir)
     trainer.train()
-
-    save_dir = os.path.join(SAVE_DIR, dataset_name)
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-
-    val_iterations = [(epoch +1) * trainer.batches_per_epoch for epoch in range(max_epochs)]
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_loss_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_loss_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Negative log likelihod loss')
-    a.legend(['Training', 'Validation'])
-    f.savefig(save_dir + 'loss_fnn.pdf', bbox_inches='tight')
-    f.savefig(save_dir + 'loss_fnn.png', bbox_inches='tight')
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_acc_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_acc_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Classification accuracy')
-    a.legend(['Training', 'Validation'])
-    f.savefig(save_dir + '/accuracy_fnn.pdf', bbox_inches='tight')
-    f.savefig(save_dir + '/accuracy_fnn.png', bbox_inches='tight')
