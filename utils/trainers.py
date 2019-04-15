@@ -1,14 +1,8 @@
 import pickle
 
 import IPython
-import numpy as np
-import torch
 import progressbar
 
-from sklearn.metrics import confusion_matrix
-from torchvision import datasets, transforms
-
-from context import nn, optim
 from .utils import onehot
 
 
@@ -52,7 +46,7 @@ class Trainer():
 
         val_evaluator: eval.Evaluator
 
-        lr_decay: optim.LRScheduler
+        lr_scheduler: optim.LRScheduler
             A scheduler for learning rate decay.
         max_epochs: int
             The number of epochs to run for during training.
@@ -78,7 +72,7 @@ class Trainer():
         # Unpack keyword arguments
         self.epoch = kwargs.pop('epoch', 0)
         self.epochs_no_improvement = kwargs.pop('epochs_no_improvement', 0)
-        self.lr_decay = kwargs.pop('lr_decay', None)
+        self.lr_scheduler = kwargs.pop('lr_scheduler', None)
         self.max_epochs = kwargs.pop('max_epochs', 10)
         self.max_epochs_no_improvement = kwargs.pop('max_epochs_no_improvement', None)
         self.checkpoint_name = kwargs.pop('checkpoint_name', None)
@@ -86,9 +80,14 @@ class Trainer():
         self.num_classes = np.unique(self.train_loader.dataset.train_labels).shape[0]
 
         # Throw an error if there are extra keyword arguments
-        if len(kwargs) > 0:
+        if kwargs:
             extra = ', '.join('"%s"' % k for k in list(kwargs.keys()))
             raise ValueError('Unrecognized arguments %s' % extra)
+
+    def reset(self):
+        self.epoch = 0
+        self.epochs_no_improvement = 0
+        self.best_val_metric = -np.inf
 
     def _save_checkpoint(self):
         if self.checkpoint_name is None: 
@@ -98,16 +97,15 @@ class Trainer():
           'train_loader': self.train_loader,
           'val_loader': self.val_loader,
           'optimizer': self.optimizer,
-          'lr_decay': self.lr_decay,
+          'lr_scheduler': self.lr_scheduler,
           'train_evaluator': self.train_evaluator,
           'val_evaluator': self.val_evaluator,
           'epoch': self.epoch,
-          'epochs_no_improvement': self.epochs_no_improvement
+          'epochs_no_improvement': self.epochs_no_improvement,
           'num_classes': self.num_classes,
         }
         filename = '{:s}_epoch_{:d}.pkl'.format(self.checkpoint_name, self.epoch)
-        if self.verbose:
-            print('Saving checkpoint to "{:s}"'.format(filename))
+        print('Saving checkpoint to "{:s}"'.format(filename))
         with open(filename, 'wb') as f:
             pickle.dump(checkpoint, f)
 
@@ -177,16 +175,15 @@ class ClassificationTrainer(Trainer):
     def train(self):
         """Run optimization to train the model.
         """
-        self.epochs_no_improvement, self.best_val_acc = 0, 0
         while self.epoch < self.max_epochs and (self.max_epochs_no_improvement is None or
-              self.max_epochs_no_improvement < self.epochs_no_improvement):
+              self.epochs_no_improvement < self.max_epochs_no_improvement):
             # Progressbar
-            widgets = [progressbar.FormatLabel(f'Epoch {epoch:3d} | Batch '),
-                   progressbar.SimpleProgress(), ' | ',
-                   progressbar.Percentage(), ' | ',
-                   progressbar.FormatLabel(f'Loss N/A'), ' | ',
-                   progressbar.Timer(), ' | ',
-                   progressbar.ETA()]
+            widgets = [progressbar.FormatLabel(f'Epoch {self.epoch:3d} | Batch '),
+                       progressbar.SimpleProgress(), ' | ',
+                       progressbar.Percentage(), ' | ',
+                       progressbar.FormatLabel(f'Loss N/A'), ' | ',
+                       progressbar.Timer(), ' | ',
+                       progressbar.ETA()]
             pbar = progressbar.ProgressBar(widgets=widgets)
 
             # Execute training on training set
@@ -200,13 +197,14 @@ class ClassificationTrainer(Trainer):
             # Validate model on validation set
             self.validate()
 
-            # Learning rate decay
-            if self.lr_decay is not None:
-                self.lr_decay.step()
+            # Learning rate scheduler
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
+                print(f'Now using learning rate {self.optimizer.lr}')
 
             # Keep track of the best model
-            if self.val_evaluator.accuracy > self.best_val_acc:
-                self.best_val_acc = self.val_evaluator.accuracy
+            if self.val_evaluator.evaluation_metric > self.best_val_metric:
+                self.best_val_metric = self.val_evaluator.evaluation_metric
                 self._save_checkpoint()
      
             # Print result of an epoch
