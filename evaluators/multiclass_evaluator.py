@@ -1,5 +1,7 @@
 import numpy as np
 
+import pandas as pd
+
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 
 from .evaluator import Evaluator
@@ -23,13 +25,16 @@ class MulticlassEvaluator(Evaluator):
             labels (list): The labels for each class
             evaluation_metric (str): The attribute to use as evaluation metric
         """
-        super().__init__(self, evaluation_metric)
+        super().__init__(evaluation_metric)
         if n_classes is not None:
             self._n_classes = n_classes
-            self._labels = np.arange(0, n_classes, dtype=np.int)
-        elif labels is not None:
-            self._n_classes = len(labels)
+        if labels is not None:
+            assert self._n_classes == len(labels), 'Must have as many labels as classes'
             self._labels = labels
+        else:
+            self._labels = np.arange(0, n_classes, dtype=np.int)
+        self._track_metrics = ('loss', 'accuracy', 'f1_score', 'recall', 'precision')
+        self.history = pd.DataFrame(columns=self._track_metrics)
         self.reset()  # Setting all tracked metrics of the evaluator to default values.
 
     def update(self, predictions, labels, loss):
@@ -42,23 +47,26 @@ class MulticlassEvaluator(Evaluator):
             loss (None or list): List of the loss for each example for each GPU.
         """
         # Update loss related values; remember to filter out infs and nans.
-        # loss = np.concatenate(loss, axis=0)
-        filter_naninf = np.invert(np.isinf(loss) + np.isnan(loss))
-        loss_clean = loss[filter_naninf]
-        self.loss_sum += np.sum(loss_clean)
-        self.num_examples += len(loss_clean)
-        self.loss = self.loss_sum / self.num_examples
+        loss_filter = np.invert(np.logical_or(np.isinf(loss), np.isnan(loss)))
+        loss_clean = loss[loss_filter]
+        self.loss_sum += loss_clean.sum()
+        self.num_examples += loss_clean.size
 
         # Update confusion matrix
-        # predictions = np.concatenate([pred for pred in predictions])
-        labels = np.concatenate([lab.argmax(axis=1) for lab in labels])  # Decode one-hot encoding
         # Confusion matrix with model predictions in rows, true labels in columns
-        self.cm += confusion_matrix(labels, predictions, labels=self._labels)
+        self.cm += confusion_matrix(labels.argmax(axis=1), predictions.argmax(axis=1), labels=self._labels)
         self.tp = np.diag(self.cm)  # TPs are diagonal elements
         self.fp = self.cm.sum(axis=0) - self.tp  # FPs is sum of row minus true positives
         self.fn = self.cm.sum(axis=1) - self.tp  # FNs is sum of column minus true positives
         # TNs is the total count minus false positives and false negatives plus true positives (which are otherwise subtracted twice)
         self.tn = self.cm.sum() - np.array([self.cm[i, :].sum() + self.cm[:, i].sum() - self.cm[i, i] for i in range(self._n_classes)])
+
+        # Append to history
+        self.history = self.history.append({m: getattr(self, m) for m in self._track_metrics}, ignore_index=True)
+
+    @property
+    def loss(self):
+        return self.loss_sum / self.num_examples
 
     @property
     def recalls(self):
@@ -78,19 +86,19 @@ class MulticlassEvaluator(Evaluator):
 
     @property
     def recall(self):
-        return self.recalls
+        return self.recalls.mean()
 
     @property
     def precision(self):
-        return self.precisions
+        return self.precisions.mean()
 
     @property
     def f1_score(self):
-        return self.f1_scores
+        return self.f1_scores.mean()
 
     @property
     def accuracy(self):
-        return self.accuracies
+        return self.accuracies.mean()
 
     def reset(self):
         """
@@ -98,7 +106,6 @@ class MulticlassEvaluator(Evaluator):
         """
         self.loss_sum = 0
         self.num_examples = 0
-        self.loss = None
         self.tp = np.zeros(shape=self._n_classes)
         self.fp = np.zeros(shape=self._n_classes)
         self.fn = np.zeros(shape=self._n_classes)
