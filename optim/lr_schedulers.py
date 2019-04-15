@@ -72,21 +72,33 @@ class CosineAnnealingLR(LRScheduler):
     When last_epoch=-1, sets initial lr as lr.
 
     It has been proposed in `SGDR: Stochastic Gradient Descent with Warm Restarts` [1].
-    Note that this only implements the cosine annealing part of SGDR, and not the restarts.
 
     Args:
         optimizer (Optimizer): Wrapped optimizer.
         T_max (int): Maximum number of iterations.
         eta_min (float): Minimum learning rate. Default: 0.
+        restarts (bool): If true, then restarts the schedule when learning rate becomes eta_min.
+        T_mult (float): Factor by which to increase T_max on a restart.
+        decay_eta_max_half_time (float): Exponential decay of eta_max on a restart. Defined in terms of half time in
+                                         units of number of restarts
         last_epoch (int): The index of last epoch. Default: -1.
 
     [1] Stochastic Gradient Descent with Warm Restarts: https://arxiv.org/abs/1608.03983
     """
-
-    def __init__(self, optimizer, T_max, eta_min=0, last_epoch=-1):
+    def __init__(self, optimizer, T_max, eta_min=0, restart=True, T_mult=1, decay_eta_max_half_time=1, last_epoch=-1):
+        super().__init__(optimizer, last_epoch)
         self.T_max = T_max
         self.eta_min = eta_min
-        super().__init__(optimizer, last_epoch)
+        self.eta_max = optimizer.lr
+        self.restart = restart
+        self.T_mult = T_mult
+        self._exp_decay_rate = np.log(2) / decay_eta_max_half_time
+        self._n_restarts = 0
 
     def get_lr(self):
-        return self.eta_min + (self.optimizer.lr - self.eta_min) * (1 + np.cos(np.pi * self.last_epoch / self.T_max)) / 2
+        if self.restart and self.last_epoch == self.T_max:
+            self._n_restarts += 1  # Bump counter
+            self.T_max *= self.T_mult  # Increase iterations until next restart by factor of T_mult
+            self.eta_max *= self._exp_decay_rate ** self._n_restarts  # Decay maximum learning rate exponentially
+            self.last_epoch = 0
+        return self.eta_min + (self.eta_max - self.eta_min) * (1 + np.cos(np.pi * (self.last_epoch + 1) / self.T_max)) / 2
