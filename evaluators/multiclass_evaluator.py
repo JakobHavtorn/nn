@@ -14,15 +14,16 @@ class MulticlassEvaluator(Evaluator):
     class probabilities rather than labels. The only issue is how we accumulate the confusion matrices
     in this case since the classes don't support addition.
     """
-    def __init__(self, n_classes=None, labels=None):
+    def __init__(self, n_classes=None, labels=None, evaluation_metric='accuracy'):
         """
         Initialize the MulticlassEvaluator object
 
         Args:
             n_classes (int): Number of classes
             labels (list): The labels for each class
+            evaluation_metric (str): The attribute to use as evaluation metric
         """
-        super().__init__(self)
+        super().__init__(self, evaluation_metric)
         if n_classes is not None:
             self._n_classes = n_classes
             self._labels = np.arange(0, n_classes, dtype=np.int)
