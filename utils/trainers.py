@@ -1,7 +1,9 @@
+import os
 import pickle
 
-import IPython
+import numpy as np
 import progressbar
+import IPython
 
 from .utils import onehot
 
@@ -58,7 +60,7 @@ class Trainer():
         verbose: bool
             If set to false then no output will be printed
           during training.
-        checkpoint_name: str
+        checkpoint_dir: str
             If not None, then save model checkpoints here every epoch.
         """
         self.model = model
@@ -72,11 +74,12 @@ class Trainer():
         # Unpack keyword arguments
         self.epoch = kwargs.pop('epoch', 0)
         self.epochs_no_improvement = kwargs.pop('epochs_no_improvement', 0)
+        self.best_val_metric = kwargs.pop('epochs_no_improvement', -np.inf)
         self.lr_scheduler = kwargs.pop('lr_scheduler', None)
         self.max_epochs = kwargs.pop('max_epochs', 10)
-        self.max_epochs_no_improvement = kwargs.pop('max_epochs_no_improvement', None)
-        self.checkpoint_name = kwargs.pop('checkpoint_name', None)
-        
+        self.max_epochs_no_improvement = kwargs.pop('max_epochs_no_improvement', self.max_epochs)
+        self.checkpoint_dir = kwargs.pop('checkpoint_dir', None)
+
         self.num_classes = np.unique(self.train_loader.dataset.train_labels).shape[0]
 
         # Throw an error if there are extra keyword arguments
@@ -90,21 +93,21 @@ class Trainer():
         self.best_val_metric = -np.inf
 
     def _save_checkpoint(self):
-        if self.checkpoint_name is None: 
+        if self.checkpoint_dir is None:
             return
         checkpoint = {
-          'model': self.model,
-          'train_loader': self.train_loader,
-          'val_loader': self.val_loader,
-          'optimizer': self.optimizer,
-          'lr_scheduler': self.lr_scheduler,
-          'train_evaluator': self.train_evaluator,
-          'val_evaluator': self.val_evaluator,
-          'epoch': self.epoch,
-          'epochs_no_improvement': self.epochs_no_improvement,
-          'num_classes': self.num_classes,
+            'model': self.model,
+            'train_loader': self.train_loader,
+            'val_loader': self.val_loader,
+            'optimizer': self.optimizer,
+            'lr_scheduler': self.lr_scheduler,
+            'train_evaluator': self.train_evaluator,
+            'val_evaluator': self.val_evaluator,
+            'epoch': self.epoch,
+            'epochs_no_improvement': self.epochs_no_improvement,
+            'num_classes': self.num_classes,
         }
-        filename = '{:s}_epoch_{:d}.pkl'.format(self.checkpoint_name, self.epoch)
+        filename = os.path.join(self.checkpoint_dir, f'checkpoint_{id(self)}.pkl')
         print('Saving checkpoint to "{:s}"'.format(filename))
         with open(filename, 'wb') as f:
             pickle.dump(checkpoint, f)
@@ -167,16 +170,15 @@ class ClassificationTrainer(Trainer):
         self.val_evaluator.reset()
         for data, targets in self.val_loader:
             data, targets = data.numpy(), targets.numpy()
-            targets_onehot = onehot(targets, self.num_classes)
+            targets = onehot(targets, self.num_classes)
             scores = self.model.forward(data)
-            loss = self.loss.forward(scores, targets_onehot)
+            loss = self.loss.forward(scores, targets)
             self.val_evaluator.update(scores, targets, loss)
 
     def train(self):
         """Run optimization to train the model.
         """
-        while self.epoch < self.max_epochs and (self.max_epochs_no_improvement is None or
-              self.epochs_no_improvement < self.max_epochs_no_improvement):
+        while self.epoch < self.max_epochs and self.epochs_no_improvement < self.max_epochs_no_improvement:
             # Progressbar
             widgets = [progressbar.FormatLabel(f'Epoch {self.epoch:3d} | Batch '),
                        progressbar.SimpleProgress(), ' | ',
@@ -186,13 +188,15 @@ class ClassificationTrainer(Trainer):
                        progressbar.ETA()]
             pbar = progressbar.ProgressBar(widgets=widgets)
 
+            print(f'Epoch {self.epoch:3d} | lr={self.optimizer.lr:4.5f}')
+
             # Execute training on training set
             self.model.train()
             self.train_evaluator.reset()
             for data, targets in pbar(self.train_loader):
                 data, targets = data.numpy(), targets.numpy()
                 loss = self._step(data, targets)
-                pbar.widgets[5] = progressbar.FormatLabel(f'Loss (E/B) {self.train_evaluator.loss:4.2f} / {loss:4.2f}')
+                pbar.widgets[5] = progressbar.FormatLabel(f'Loss (E/B) {self.train_evaluator.loss:4.2f} / {loss.mean():4.2f}')
 
             # Validate model on validation set
             self.validate()
@@ -200,14 +204,16 @@ class ClassificationTrainer(Trainer):
             # Learning rate scheduler
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
-                print(f'Now using learning rate {self.optimizer.lr}')
 
             # Keep track of the best model
             if self.val_evaluator.evaluation_metric > self.best_val_metric:
                 self.best_val_metric = self.val_evaluator.evaluation_metric
                 self._save_checkpoint()
+                self.epochs_no_improvement = 0
+            else:
+                self.epochs_no_improvement += 1
+
+            print(f'Epoch {self.epoch:3d} | Loss (T/V) {self.train_evaluator.loss:5.4f} / {self.val_evaluator.loss:5.4f} | ' \
+                  f'{self.train_evaluator.evaluation_metric_name.capitalize()} (T/V) {self.train_evaluator.evaluation_metric:5.4f} / {self.val_evaluator.evaluation_metric:5.4f}')
      
-            # Print result of an epoch
-            # print('(Epoch {:d} / {:d}) TA: {:3.2f}% | TL {:3.2f} | VA {:3.2f}% | VL {:3.2f}'.format(
-            #             self.epoch+1, self.max_epochs, avg_train_acc, avg_train_loss,
-            #             self.val_acc_history[-1], self.val_loss_history[-1]))
+            self.epoch += 1
