@@ -54,14 +54,17 @@ class MulticlassEvaluator(Evaluator):
 
         # Update confusion matrix
         # Confusion matrix with model predictions in rows, true labels in columns
-        self.cm += confusion_matrix(labels.argmax(axis=1), predictions.argmax(axis=1), labels=self._labels)
+        cm = confusion_matrix(labels.argmax(axis=1), predictions.argmax(axis=1), labels=self._labels)
+        self.cm += cm
+
         self.tp = np.diag(self.cm)  # TPs are diagonal elements
         self.fp = self.cm.sum(axis=0) - self.tp  # FPs is sum of row minus true positives
         self.fn = self.cm.sum(axis=1) - self.tp  # FNs is sum of column minus true positives
         # TNs is the total count minus false positives and false negatives plus true positives (which are otherwise subtracted twice)
         self.tn = self.cm.sum() - np.array([self.cm[i, :].sum() + self.cm[:, i].sum() - self.cm[i, i] for i in range(self._n_classes)])
 
-        # Append to history
+        # TODO Store batch statistics instead of accumulated epoch statistics
+        # self.history = self.history.append(dict(loss=loss_clean.mean(), accuracy=accuracy(cm)), ignore_index=True)
         self.history = self.history.append({m: getattr(self, m) for m in self._track_metrics}, ignore_index=True)
 
     @property
