@@ -2,6 +2,7 @@ import os
 import pickle
 
 import numpy as np
+import matplotlib.pyplot as plt
 import progressbar
 import IPython
 
@@ -91,6 +92,14 @@ class Trainer():
         self.epoch = 0
         self.epochs_no_improvement = 0
         self.best_val_metric = -np.inf
+
+    def _update_plots(self):
+        for name, evaluator in zip(['train', 'val'], [self.train_evaluator, self.val_evaluator]):
+            for k in evaluator.history.keys():
+                fig, ax = plt.subplots(figsize=(16, 9))
+                evaluator.history[k].plot(ax=ax)
+                fig.savefig(os.path.join(self.checkpoint_dir, name + '_' + k + '.pdf'), bbox_inches='tight')
+                plt.close(fig)
 
     def _save_checkpoint(self):
         if self.checkpoint_dir is None:
@@ -212,6 +221,9 @@ class ClassificationTrainer(Trainer):
                 self.epochs_no_improvement = 0
             else:
                 self.epochs_no_improvement += 1
+
+            # Update plots
+            self._update_plots()
 
             print(f'Epoch {self.epoch:3d} | Loss (T/V) {self.train_evaluator.loss:5.4f} / {self.val_evaluator.loss:5.4f} | ' \
                   f'{self.train_evaluator.evaluation_metric_name.capitalize()} (T/V) {self.train_evaluator.evaluation_metric:5.4f} / {self.val_evaluator.evaluation_metric:5.4f}')
