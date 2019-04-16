@@ -1,11 +1,11 @@
 import os
 
-import IPython
 import matplotlib.pyplot as plt
 import numpy as np
 
-from context import nn, optim, utils
-from loaders import get_loaders
+from context import nn, optim, utils, evaluators
+from utils.constants import SAVE_DIR
+from utils.utils import get_loaders
 
 
 class CNNClassifier(nn.Module):
@@ -27,27 +27,32 @@ class CNNClassifier(nn.Module):
         Whether or not to include dropout and the dropout probability to use.
     """
 
-    def __init__(self, in_features, out_classes, feature_maps=[16, 32], hidden_dims=[512], activation=nn.ReLU, batchnorm=False, dropout=False):
+    def __init__(self, in_features, out_classes, feature_maps=[16, 32, 64], kernels=[(4, 4), (3, 3), (2, 2)], strides=[2, 2, 2],
+                 hidden_dims=[576], activation=nn.ReLU, batchnorm=False, dropout=False, maxpool=False):
         super(CNNClassifier, self).__init__()
         # Convolutional layers
-        self.add_module("convolutional_0", nn.Conv2D(1, feature_maps[0], kernel_size=(5, 5)))
-        # self.add_module("Batchnorm0", nn.BatchNorm2D(32))
-        self.add_module("maxpool_0", nn.MaxPool2D(kernel_size=(2, 2), stride=2, padding=0))
-        self.add_module("activation_0", activation())
-        self.add_module("convolutional_1", nn.Conv2D(feature_maps[0], feature_maps[1], kernel_size=(5, 5)))
-        # self.add_module("Batchnorm1", nn.BatchNorm2D(64))
-        self.add_module("maxpool_1", nn.MaxPool2D(kernel_size=(2, 2), stride=2, padding=0))
-        self.add_module("flatten_1", nn.Flatten())
+        feature_maps = [1, *feature_maps]
+        for i in range(len(feature_maps) - 1):
+            if batchnorm:
+                # self.add_module('Batchnorm0', nn.BatchNorm2D(in_features))
+                pass
+            if dropout:
+                self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
+            self.add_module('convolutional_' + str(i), nn.Conv2D(feature_maps[i], feature_maps[i+1], kernel_size=kernels[i], stride=strides[i]))
+            if maxpool:
+                self.add_module('maxpool_' + str(i), nn.MaxPool2D(kernel_size=kernels[i], stride=strides[i], padding=0))
+            self.add_module('activation_' + str(i), activation())
+        self.add_module('flatten_1', nn.Flatten())
         # Feedforward classifier
         dims = [*hidden_dims, out_classes]
         for i in range(len(dims) - 1):
             if batchnorm:
-                self.add_module("batchnorm_" + str(i), nn.BatchNorm1D(dims[i]))
+                self.add_module('batchnorm_' + str(i + 2), nn.BatchNorm1D(dims[i]))
             if dropout:
-                self.add_module("dropout_" + str(i), nn.Dropout(p=dropout))
-            self.add_module("activation_" + str(i+2), activation())
-            self.add_module("linear_" + str(i), nn.Linear(dims[i], dims[i+1]))
-        self.add_module("activation_" + str(i+2), nn.Softmax())
+                self.add_module('dropout_' + str(i + 2), nn.Dropout(p=dropout))
+            self.add_module('activation_' + str(i + 2), activation())
+            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1]))
+        self.add_module('activation_' + str(i+3), nn.Softmax())
 
     def forward(self, x):
         for module in self._modules.values():
@@ -60,42 +65,40 @@ class CNNClassifier(nn.Module):
 
 
 if __name__ == '__main__':
-    # Model
-    classifier = CNNClassifier((1, 28, 28), 10, activation=nn.ReLU, batchnorm=True, dropout=False)
-    classifier.summarize()
     # Dataset
-    save_dir = './results/mnist/'
-    dataset_name = "MNIST"
-    batch_size = 128
-    num_epochs = 10
+    dataset_name = 'MNIST'
+    batch_size = 250
+    max_epochs = 20
+    max_epochs_no_improvement = 10
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
+
+    # Checkpoint dir
+    checkpoint_dir = os.path.join(SAVE_DIR, dataset_name)
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+
+    # Model
+    classifier = CNNClassifier((1, 28, 28), 10, activation=nn.ReLU, batchnorm=True, dropout=0.2)
+    classifier.summarize()
+
     # Optimizer
-    optimizer = optim.SGD(classifier, lr=0.01, momentum=0.9, nesterov=False, dampening=0, l1_weight_decay=0, l2_weight_decay=0)
+    optimizer = optim.Adam(classifier.parameters, lr=0.001, l1_weight_decay=0, l2_weight_decay=0)
+    # optimizer = optim.SGD(classifier.parameters, lr=0.001, momentum=0.9, nesterov=True, l1_weight_decay=0, l2_weight_decay=0)
+
     # Loss
     loss = nn.CrossEntropyLoss()
-    # Train
-    trainer = utils.ClassificationTrainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+
+    # Learning rate schedule
+    lr_scheduler = None  # optim.CosineAnnealingLR(optimizer, T_max=5, decay_eta_max_half_time=1)
+
+    # Evaluators
+    train_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
+    val_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
+
+    # Trainer
+    trainer = utils.trainers.ClassificationTrainer(classifier, optimizer, loss, train_loader, val_loader,
+                                                   train_evaluator, val_evaluator,
+                                                   lr_scheduler=lr_scheduler, max_epochs=max_epochs, 
+                                                   max_epochs_no_improvement=max_epochs_no_improvement, 
+                                                   checkpoint_dir=checkpoint_dir)
     trainer.train()
-
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-
-    val_iterations = [(epoch +1) * trainer.batches_per_epoch for epoch in range(num_epochs)]
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_loss_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_loss_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Negative log likelihod loss')
-    a.legend(['Training', 'Validation'])
-    f.savefig(save_dir + 'loss_cnn.pdf', bbox_inches='tight')
-    f.savefig(save_dir + 'loss_cnn.png', bbox_inches='tight')
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_acc_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_acc_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Classification accuracy')
-    a.legend(['Training', 'Validation'])
-    f.savefig('./results/mnist/accuracy_cnn.pdf', bbox_inches='tight')
-    f.savefig('./results/mnist/accuracy_cnn.png', bbox_inches='tight')
