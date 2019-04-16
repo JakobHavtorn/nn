@@ -36,7 +36,7 @@ class BatchNorm1D(Module):
         self.reset_parameters()
 
     def __str__(self):
-        return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine}'
+        return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine})'
 
     def reset_running_stats(self):
         if self.momentum == 0.0:
