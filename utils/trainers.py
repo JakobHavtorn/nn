@@ -93,11 +93,62 @@ class Trainer():
         self.epochs_no_improvement = 0
         self.best_val_metric = -np.inf
 
+    def step(self, pbar):
+        raise NotImplementedError
+
+    def validate(self, pbar):
+        raise NotImplementedError
+
+    def train(self):
+        """Run optimization to train the model.
+        """
+        while self.epoch < self.max_epochs and self.epochs_no_improvement < self.max_epochs_no_improvement:
+
+            print(f'Epoch {self.epoch:3d} | lr={self.optimizer.lr:4.5f}')
+
+            # Progressbar
+            widgets = [progressbar.FormatLabel(f'Epoch {self.epoch:3d} | Batch '),
+                       progressbar.SimpleProgress(), ' | ',
+                       progressbar.Percentage(), ' | ',
+                       progressbar.FormatLabel(f'Loss N/A'), ' | ',
+                       progressbar.Timer(), ' | ',
+                       progressbar.ETA()]
+            pbar_train = progressbar.ProgressBar(widgets=widgets)
+            pbar_val = progressbar.ProgressBar(widgets=widgets)
+
+            # Execute training on training set
+            self.step(pbar_train)
+
+            # Validate model on validation set
+            self.validate(pbar_val)
+
+            # Learning rate scheduler
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
+
+            print(f'Epoch {self.epoch:3d} | Loss (T/V) {self.train_evaluator.loss:5.4f} / {self.val_evaluator.loss:5.4f} | ' \
+                  f'{self.train_evaluator.evaluation_metric_name.capitalize()} (T/V) {self.train_evaluator.evaluation_metric:5.4f} / {self.val_evaluator.evaluation_metric:5.4f}')
+
+            # Keep track of the best model
+            if self.val_evaluator.evaluation_metric > self.best_val_metric:
+                self.best_val_metric = self.val_evaluator.evaluation_metric
+                self._save_checkpoint()
+                self.epochs_no_improvement = 0
+            else:
+                self.epochs_no_improvement += 1
+
+            # Update plots
+            self._update_plots()
+
+            self.epoch += 1
+
     def _update_plots(self):
         for name, evaluator in zip(['train', 'val'], [self.train_evaluator, self.val_evaluator]):
             for k in evaluator.history.keys():
                 fig, ax = plt.subplots(figsize=(16, 9))
                 evaluator.history[k].plot(ax=ax)
+                ax.set_xlabel('Batch')
+                ax.set_ylabel(k)
                 fig.savefig(os.path.join(self.checkpoint_dir, name + '_' + k + '.pdf'), bbox_inches='tight')
                 plt.close(fig)
 
@@ -146,26 +197,32 @@ class ClassificationTrainer(Trainer):
     def __init__(self, model, optimizer, loss, train_loader, val_loader, train_evaluator, val_evaluator, **kwargs):
         super().__init__(model, optimizer, loss, train_loader, val_loader, train_evaluator, val_evaluator, **kwargs)
 
-    def _step(self, data, targets):
+    def step(self, pbar):
         """Make a single gradient update.
 
         This is called by train()
         """
-        targets = onehot(targets, self.num_classes)
-        # Forward pass, compute loss
-        scores = self.model.forward(data)
-        loss = self.loss.forward(scores, targets)
-        # Backward pass, compute gradient
-        self.optimizer.zero_grad()
-        dout = self.loss.backward(scores, targets)
-        self.model.backward(dout)
-        # Take step with optimizer
-        self.optimizer.step()
-        # Update evaluator
-        self.train_evaluator.update(scores, targets, loss)
-        return loss
+        self.model.train()
+        self.train_evaluator.reset()
+        for data, targets in pbar(self.train_loader):
+            data, targets = data.numpy(), targets.numpy()
+            
+            targets = onehot(targets, self.num_classes)
+            # Forward pass, compute loss
+            scores = self.model.forward(data)
+            loss = self.loss.forward(scores, targets)
+            # Backward pass, compute gradient
+            self.optimizer.zero_grad()
+            dout = self.loss.backward(scores, targets)
+            self.model.backward(dout)
+            # Take step with optimizer
+            self.optimizer.step()
+            # Update evaluator
+            self.train_evaluator.update(scores, targets, loss)
 
-    def validate(self):
+            pbar.widgets[5] = progressbar.FormatLabel(f'Loss (E/B) {self.train_evaluator.loss:4.2f} / {loss.mean():4.2f}')
+
+    def validate(self, pbar):
         """Validates the model on the validation set.
 
         Returns
@@ -177,55 +234,11 @@ class ClassificationTrainer(Trainer):
         """
         self.model.eval()
         self.val_evaluator.reset()
-        for data, targets in self.val_loader:
+        for data, targets in pbar(self.val_loader):
             data, targets = data.numpy(), targets.numpy()
             targets = onehot(targets, self.num_classes)
             scores = self.model.forward(data)
             loss = self.loss.forward(scores, targets)
             self.val_evaluator.update(scores, targets, loss)
 
-    def train(self):
-        """Run optimization to train the model.
-        """
-        while self.epoch < self.max_epochs and self.epochs_no_improvement < self.max_epochs_no_improvement:
-            # Progressbar
-            widgets = [progressbar.FormatLabel(f'Epoch {self.epoch:3d} | Batch '),
-                       progressbar.SimpleProgress(), ' | ',
-                       progressbar.Percentage(), ' | ',
-                       progressbar.FormatLabel(f'Loss N/A'), ' | ',
-                       progressbar.Timer(), ' | ',
-                       progressbar.ETA()]
-            pbar = progressbar.ProgressBar(widgets=widgets)
-
-            print(f'Epoch {self.epoch:3d} | lr={self.optimizer.lr:4.5f}')
-
-            # Execute training on training set
-            self.model.train()
-            self.train_evaluator.reset()
-            for data, targets in pbar(self.train_loader):
-                data, targets = data.numpy(), targets.numpy()
-                loss = self._step(data, targets)
-                pbar.widgets[5] = progressbar.FormatLabel(f'Loss (E/B) {self.train_evaluator.loss:4.2f} / {loss.mean():4.2f}')
-
-            # Validate model on validation set
-            self.validate()
-
-            # Learning rate scheduler
-            if self.lr_scheduler is not None:
-                self.lr_scheduler.step()
-
-            # Keep track of the best model
-            if self.val_evaluator.evaluation_metric > self.best_val_metric:
-                self.best_val_metric = self.val_evaluator.evaluation_metric
-                self._save_checkpoint()
-                self.epochs_no_improvement = 0
-            else:
-                self.epochs_no_improvement += 1
-
-            # Update plots
-            self._update_plots()
-
-            print(f'Epoch {self.epoch:3d} | Loss (T/V) {self.train_evaluator.loss:5.4f} / {self.val_evaluator.loss:5.4f} | ' \
-                  f'{self.train_evaluator.evaluation_metric_name.capitalize()} (T/V) {self.train_evaluator.evaluation_metric:5.4f} / {self.val_evaluator.evaluation_metric:5.4f}')
-     
-            self.epoch += 1
+            pbar.widgets[5] = progressbar.FormatLabel(f'Loss (E/B) {self.val_evaluator.loss:4.2f} / {loss.mean():4.2f}')
