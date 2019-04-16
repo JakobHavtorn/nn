@@ -33,8 +33,9 @@ class MulticlassEvaluator(Evaluator):
             self._labels = labels
         else:
             self._labels = np.arange(0, n_classes, dtype=np.int)
-        self._track_metrics = ('loss', 'accuracy', 'f1_score', 'recall', 'precision')
-        self.history = pd.DataFrame(columns=self._track_metrics)
+        self.batch = 0
+        self._track_metrics = ('loss', 'accuracies', 'f1_scores', 'tprs', 'fprs', 'tnrs', 'fnrs', 'ppvs', 'fors', 'npvs', 'fdrs')
+        self.history = pd.DataFrame(columns=('batch',) + self._track_metrics)
         self.reset()  # Setting all tracked metrics of the evaluator to default values.
 
     def update(self, predictions, labels, loss):
@@ -48,52 +49,79 @@ class MulticlassEvaluator(Evaluator):
         """
         # Update loss related values; remember to filter out infs and nans.
         loss_filter = np.invert(np.logical_or(np.isinf(loss), np.isnan(loss)))
-        loss_clean = loss[loss_filter]
-        self.loss_sum += loss_clean.sum()
-        self.num_examples += loss_clean.size
+        loss = loss[loss_filter]
+        self.loss_sum += loss.sum()
+        self.num_examples += loss.size
+        loss = loss.mean()
 
         # Update confusion matrix
         # Confusion matrix with model predictions in rows, true labels in columns
+        # Batch statistics for history
         cm = confusion_matrix(labels.argmax(axis=1), predictions.argmax(axis=1), labels=self._labels)
+        tps, fps, tns, fns = self.compute_tp_fp_tn_fn(cm)
+        tprs, fprs, tnrs, fnrs = self.compute_tpr_fpr_tnr_fnr(tps, fps, tns, fns)
+        ppvs, fors, npvs, fdrs = self.compute_ppv_for_npv_fdr(tps, fps, tns, fns)
+        accuracies = self.compute_accuracies(tps, fps, tns, fns)
+        f1_scores = self.compute_f1_scores(tps, fps, tns, fns)
+        d = {'batch': self.batch}
+        for v in self._track_metrics:
+            d.update({v: eval(v).mean()})
+        self.history = self.history.append(d, ignore_index=True)
+
+        # accumulated statistics
         self.cm += cm
+        self.tps, self.fps, self.tns, self.fns = self.compute_tp_fp_tn_fn(self.cm)
+        self.tprs, self.fprs, self.tnrs, self.fnrs = self.compute_tpr_fpr_tnr_fnr(self.tps, self.fps, self.tns, self.fns)
+        self.ppvs, self.fors, self.npvs, self.fdrs = self.compute_ppv_for_npv_fdr(self.tps, self.fps, self.tns, self.fns)
+        self.accuracies = self.compute_accuracies(self.tps, self.fps, self.tns, self.fns)
+        self.f1_scores = self.compute_f1_scores(self.tps, self.fps, self.tns, self.fns)
 
-        self.tp = np.diag(self.cm)  # TPs are diagonal elements
-        self.fp = self.cm.sum(axis=0) - self.tp  # FPs is sum of row minus true positives
-        self.fn = self.cm.sum(axis=1) - self.tp  # FNs is sum of column minus true positives
-        # TNs is the total count minus false positives and false negatives plus true positives (which are otherwise subtracted twice)
-        self.tn = self.cm.sum() - np.array([self.cm[i, :].sum() + self.cm[:, i].sum() - self.cm[i, i] for i in range(self._n_classes)])
+        # Bump batch counter
+        self.batch += 1
 
-        # TODO Store batch statistics instead of accumulated epoch statistics
-        # self.history = self.history.append(dict(loss=loss_clean.mean(), accuracy=accuracy(cm)), ignore_index=True)
-        self.history = self.history.append({m: getattr(self, m) for m in self._track_metrics}, ignore_index=True)
+    @staticmethod
+    def compute_tp_fp_tn_fn(cm):
+        tp = np.diag(cm)  # TPs are diagonal elements
+        fp = cm.sum(axis=0) - tp  # FPs is sum of row minus true positives
+        fn = cm.sum(axis=1) - tp  # FNs is sum of column minus true positives
+        tn = cm.sum() - np.array([cm[i, :].sum() + cm[:, i].sum() - cm[i, i] for i in range(cm.shape[0])])  # total count minus false positives and false negatives plus true positives (which are otherwise subtracted twice)
+        return tp, fp, tn, fn
+
+    @staticmethod
+    def compute_tpr_fpr_tnr_fnr(tp, fp, tn, fn):
+        TPRs = tp / np.maximum(tp + fn, 1)  # True positive rate (recall)
+        FPRs = fp / np.maximum(tn + fp, 1)  # False positive rate
+        TNRs = tn / np.maximum(tn + fp, 1)  # True negative rate (specificity)
+        FNRs = fn / np.maximum(tp + fn, 1)  # False negative rate
+        return TPRs, FPRs, TNRs, FNRs
+
+    @staticmethod
+    def compute_ppv_for_npv_fdr(tp, fp, tn, fn):
+        PPVs = tp / np.maximum(tp + fp, 1)  # Positive predictive value (precision)
+        FORs = fn / np.maximum(tn + fn, 1)  # False omission rate
+        NPVs = tn / np.maximum(tn + fn, 1)  # Negative predictive value
+        FDRs = fp / np.maximum(tp + fp, 1)  # False discovery rate
+        return PPVs, FORs, NPVs, FDRs
+
+    @staticmethod
+    def compute_accuracies(tp, fp, tn, fn):
+        return (tp + tn) / np.maximum(tp + fp + tn + fn, 1)
+
+    @staticmethod
+    def compute_f1_scores(tp, fp, tn, fn):
+        return 2 * tp / np.maximum(2 * tp + fn + fp, 1)
 
     @property
     def loss(self):
         return self.loss_sum / self.num_examples
 
     @property
-    def recalls(self):
-        return self.tp / np.maximum(self.tp + self.fn, 1)
+    def tpr(self):
+        return self.tprs.mean()
 
     @property
-    def precisions(self):
-        return self.tp / np.maximum(self.tp + self.fp, 1)
-
-    @property
-    def f1_scores(self):
-        return 2 * self.tp / np.maximum(2 * self.tp + self.fn + self.fp, 1)
-
-    @property
-    def accuracies(self):
-        return (self.tp + self.tn) / (self.tp + self.fp + self.tn + self.fn)
-
-    @property
-    def recall(self):
-        return self.recalls.mean()
-
-    @property
-    def precision(self):
-        return self.precisions.mean()
+    def ppv(self):
+        return self.ppvs.mean()
 
     @property
     def f1_score(self):
@@ -109,8 +137,8 @@ class MulticlassEvaluator(Evaluator):
         """
         self.loss_sum = 0
         self.num_examples = 0
-        self.tp = np.zeros(shape=self._n_classes)
-        self.fp = np.zeros(shape=self._n_classes)
-        self.fn = np.zeros(shape=self._n_classes)
-        self.tn = np.zeros(shape=self._n_classes)
+        self.tps = np.zeros(shape=self._n_classes)
+        self.fps = np.zeros(shape=self._n_classes)
+        self.fns = np.zeros(shape=self._n_classes)
+        self.tns = np.zeros(shape=self._n_classes)
         self.cm = np.zeros((self._n_classes, self._n_classes))
