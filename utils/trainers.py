@@ -144,6 +144,7 @@ class Trainer():
 
     def _update_plots(self):
         for name, evaluator in zip(['train', 'val'], [self.train_evaluator, self.val_evaluator]):
+            # Batch level
             for k in evaluator.history.keys():
                 fig, ax = plt.subplots(figsize=(16, 9))
                 evaluator.history[k].plot(ax=ax)
@@ -151,6 +152,14 @@ class Trainer():
                 ax.set_ylabel(k)
                 fig.savefig(os.path.join(self.checkpoint_dir, name + '_' + k + '.pdf'), bbox_inches='tight')
                 plt.close(fig)
+            # # Epoch level
+            # for k in evaluator.history.keys():
+            #     fig, ax = plt.subplots(figsize=(16, 9))
+            #     evaluator.history[k].plot(ax=ax)
+            #     ax.set_xlabel('Batch')
+            #     ax.set_ylabel(k)
+            #     fig.savefig(os.path.join(self.checkpoint_dir, name + '_' + k + '.pdf'), bbox_inches='tight')
+            #     plt.close(fig)
 
     def _save_checkpoint(self):
         if self.checkpoint_dir is None:
