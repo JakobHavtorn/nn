@@ -1,11 +1,8 @@
 import os
 
-import IPython
-import matplotlib.pyplot as plt
-import numpy as np
-
-from context import nn, optim, utils
-from loaders import get_loaders
+from context import nn, optim, utils, evaluators
+from utils.constants import SAVE_DIR
+from utils.utils import get_loaders
 
 
 class RNNClassifier(nn.Module):
@@ -30,10 +27,11 @@ class RNNClassifier(nn.Module):
     def __init__(self, input_size, out_classes, hidden_dims=[256], activation=nn.ReLU, batchnorm=False, dropout=False):
         super(RNNClassifier, self).__init__()
 
-        self.add_module("RNN0", nn.RNN(input_size, hidden_dims[0], bias=True))
+        self.input_size = input_size
+        self.add_module("RNN_0", nn.RNN(input_size, hidden_dims[0], bias=True))
         # self.add_module("Linear0", nn.Linear(hidden_dims[0], hidden_dims[1], bias=True))
-        self.add_module("Linear0", nn.Linear(hidden_dims[0], out_classes, bias=True))
-        self.add_module("Softmax0", nn.Softmax())
+        self.add_module("Linear_0", nn.Linear(hidden_dims[0], out_classes, bias=True))
+        self.add_module("Softmax_0", nn.Softmax())
 
         # dims = [in_features, *hidden_dims, out_classes]
         # for i in range(len(dims) - 1):
@@ -50,12 +48,13 @@ class RNNClassifier(nn.Module):
 
     def forward(self, x):
         # Feed each row as a vector to RNN
-        assert x.shape[0] == 1, "Only supports batches of 1 example"
-        x = x.reshape(x.shape[-2] ,x.shape[-1])
-        x = self.RNN0.forward(x)
-        x = x[-1,:].reshape(1, *x[-1,:].shape)
-        x = self.Linear0.forward(x)
-        x = self.Softmax0.forward(x)
+        # assert x.shape[0] == 1, "Only supports batches of 1 example"
+        x = x.reshape(self.input_size, x.shape[0], -1)
+        x = self.RNN_0.forward(x)
+        # import IPython
+        # IPython.embed()
+        x = self.Linear_0.forward(x)
+        x = self.Softmax_0.forward(x)
         return x
 
     def backward(self, dout):
@@ -64,42 +63,40 @@ class RNNClassifier(nn.Module):
 
 
 if __name__ == '__main__':
-    # Model
-    classifier = RNNClassifier(input_size=28, out_classes=10, )
-    classifier.summarize()
     # Dataset
-    save_dir = './results/mnist/'
-    dataset_name = "MNIST"
-    batch_size = 1
-    num_epochs = 10
+    dataset_name = 'MNIST'
+    batch_size = 250
+    max_epochs = 20
+    max_epochs_no_improvement = 10
     train_loader, val_loader = get_loaders(dataset_name, batch_size)
+
+    # Checkpoint dir
+    checkpoint_dir = os.path.join(SAVE_DIR, dataset_name)
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+
+    # Model
+    classifier = RNNClassifier(28, 10, activation=nn.ReLU, batchnorm=True, dropout=False)
+    classifier.summarize()
+
     # Optimizer
-    optimizer = optim.SGD(classifier, lr=0.01, momentum=0.9, nesterov=False, dampening=0, l1_weight_decay=0, l2_weight_decay=0)
+    optimizer = optim.Adam(classifier.parameters, lr=0.001, l1_weight_decay=0, l2_weight_decay=0)
+    # optimizer = optim.SGD(classifier.parameters, lr=0.001, momentum=0.9, nesterov=True, l1_weight_decay=0, l2_weight_decay=0)
+
     # Loss
     loss = nn.CrossEntropyLoss()
-    # Train
-    trainer = utils.Trainer(classifier, train_loader, val_loader, optimizer, loss, num_epochs=num_epochs, lr_decay=1.0)
+
+    # Learning rate schedule
+    lr_scheduler = None  # optim.CosineAnnealingLR(optimizer, T_max=5, decay_eta_max_half_time=1)
+
+    # Evaluators
+    train_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
+    val_evaluator = evaluators.MulticlassEvaluator(n_classes=10)
+
+    # Trainer
+    trainer = utils.trainers.ClassificationTrainer(classifier, optimizer, loss, train_loader, val_loader,
+                                                   train_evaluator, val_evaluator,
+                                                   lr_scheduler=lr_scheduler, max_epochs=max_epochs, 
+                                                   max_epochs_no_improvement=max_epochs_no_improvement, 
+                                                   checkpoint_dir=checkpoint_dir)
     trainer.train()
-
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-
-    val_iterations = [(epoch +1) * trainer.batches_per_epoch for epoch in range(num_epochs)]
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_loss_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_loss_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Negative log likelihod loss')
-    a.legend(['Training', 'Validation'])
-    f.savefig(save_dir + 'loss_rnn.pdf', bbox_inches='tight')
-    f.savefig(save_dir + 'loss_rnn.png', bbox_inches='tight')
-
-    f, a = plt.subplots()
-    a.plot(trainer.train_acc_history, '.', alpha=0.2,)
-    a.plot(val_iterations, trainer.val_acc_history)
-    a.set_xlabel('Iteration')
-    a.set_ylabel('Classification accuracy')
-    a.legend(['Training', 'Validation'])
-    f.savefig('./results/mnist/accuracy_rnn.pdf', bbox_inches='tight')
-    f.savefig('./results/mnist/accuracy_rnn.png', bbox_inches='tight')
