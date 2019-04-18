@@ -1,8 +1,5 @@
 import os
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 from context import nn, optim, utils, evaluators
 from utils.constants import SAVE_DIR
 from utils.utils import get_loaders
