@@ -20,7 +20,7 @@ class Dropout(Module):
     def __str__(self): 
         return "Dropout({:.2f})".format(self.p)
 
-    def forward(self, x, train=True):
+    def forward(self, x):
         if self.training:
             mask = np.random.random(x.shape) > self.p
             scale = 1.0 / (1-self.p)
