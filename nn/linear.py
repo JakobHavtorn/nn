@@ -38,7 +38,7 @@ class Linear(Module):
         self.cache = dict(x=None)
         self.reset_parameters()
 
-    def __str__(self): 
+    def __str__(self):
         return "Linear({:d}, {:d}, bias={})".format(self.in_features, self.out_features, self.b is not None)
 
     def reset_parameters(self):
