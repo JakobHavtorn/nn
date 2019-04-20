@@ -49,13 +49,13 @@ class _Pooling(Module):
         self.X_col = X_col
         return out
 
-    def backward(self, dout):
+    def backward(self, delta):
         # Shapes
         N, C, W, H = self.X_shape
         # Backwards pool
-        dout_col = dout.transpose(2, 3, 0, 1).ravel()
+        delta_col = delta.transpose(2, 3, 0, 1).ravel()
         dX_col = np.zeros_like(self.X_col)
-        dX_col = self._dpool(dX_col, dout_col)
+        dX_col = self._dpool(dX_col, delta_col)
         # Reshape
         dX = col2im_cython(dX_col, N * C, 1, H, W, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
         # dX = col2im_indices(dX_col, (N * C, 1, H, W), self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
@@ -95,9 +95,9 @@ class MaxPool2D(_Pooling):
         out = X_col[self.max_idx, range(self.max_idx.size)]
         return out
 
-    def _dpool(self, dX_col, dout_col):
-        # dX_col[self.max_idx, range(dout_col.size)] = dout_col
-        dX_col[self.max_idx, np.arange(dX_col.shape[1])] = dout_col
+    def _dpool(self, dX_col, delta_col):
+        # dX_col[self.max_idx, range(delta_col.size)] = delta_col
+        dX_col[self.max_idx, np.arange(dX_col.shape[1])] = delta_col
         return dX_col
 
 
@@ -132,6 +132,6 @@ class AvgPool2D(_Pooling):
         out = np.mean(X_col, axis=0)
         return out
 
-    def _dpool(self, dX_col, dout_col):
-        dX_col[:, range(dout_col.size)] = 1. / dX_col.shape[0] * dout_col
+    def _dpool(self, dX_col, delta_col):
+        dX_col[:, range(delta_col.size)] = 1. / dX_col.shape[0] * delta_col
         return dX_col

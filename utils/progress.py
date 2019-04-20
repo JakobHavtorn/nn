@@ -37,8 +37,8 @@ class ProgressBar(object):
         if self.end_value is not None:
             x = x / self.end_value
         y = int(x * self._w)                      
-        sys.stdout.write(self.title + "[" + self.ds * y + self.ws * (self._w - y) + "] {:3d}%".format(int(round(x * 100))) + chr(8) * self._b)
-        sys.stdout.flush()
+        sys.stdelta.write(self.title + "[" + self.ds * y + self.ws * (self._w - y) + "] {:3d}%".format(int(round(x * 100))) + chr(8) * self._b)
+        sys.stdelta.flush()
 
     def end(self):
         """End of progress bar.
@@ -48,8 +48,8 @@ class ProgressBar(object):
             s = self.title + "[" + self.ds * self._w + "] {:3d}%".format(100) + "\n"
         else:
             s = ' ' * self._b  + chr(8) * self._b
-        sys.stdout.write(s)
-        sys.stdout.flush()
+        sys.stdelta.write(s)
+        sys.stdelta.flush()
 
 
 class PoolProgress(object):

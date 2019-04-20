@@ -107,9 +107,9 @@ class FNNClassifier(nn.Module):
             x = module.forward(x)
         return x
 
-    def backward(self, dout):
+    def backward(self, delta):
         for module in reversed(self._modules.values()):
-            dout = module.backward(dout)
+            delta = module.backward(delta)
 ``` 
 
 ### CNN example
@@ -150,9 +150,9 @@ class CNNClassifier(nn.Module):
             x = module.forward(x)
         return x
 
-    def backward(self, dout):
+    def backward(self, delta):
         for module in reversed(self._modules.values()):
-            dout = module.backward(dout)
+            delta = module.backward(delta)
 ```
 
 ## Training example

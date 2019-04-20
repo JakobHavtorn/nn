@@ -47,9 +47,9 @@ class CrossEntropyLoss(Loss):
 
         Shapes
         ------
-        Input: 
+        Input:
             (N, C) where N is batch size and C is number of classes.
-        Target: 
+        Target:
             (N, C) where each row is a one-hot encoded vector
         Output: float
             Scalar loss.

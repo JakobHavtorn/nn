@@ -24,8 +24,8 @@ class Flatten(Module):
         self.forward_shape = x.shape[1:]
         return x.reshape(x.shape[0], -1)
 
-    def backward(self, dout):
-        return dout.reshape(dout.shape[0], *self.forward_shape)
+    def backward(self, delta):
+        return delta.reshape(delta.shape[0], *self.forward_shape)
 
 
 class Reshape(Module):
@@ -46,5 +46,5 @@ class Reshape(Module):
         self.forward_shape = x.shape[1:]
         return x.reshape(self.output_shape)
 
-    def backward(self, dout):
-        return dout.reshape(dout.shape[0], *self.forward_shape)
+    def backward(self, delta):
+        return delta.reshape(delta.shape[0], *self.forward_shape)

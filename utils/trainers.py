@@ -222,8 +222,8 @@ class ClassificationTrainer(Trainer):
             loss = self.loss.forward(scores, targets)
             # Backward pass, compute gradient
             self.optimizer.zero_grad()
-            dout = self.loss.backward(scores, targets)
-            self.model.backward(dout)
+            delta = self.loss.backward(scores, targets)
+            self.model.backward(delta)
             # Take step with optimizer
             self.optimizer.step()
             # Update evaluator

@@ -99,7 +99,6 @@ class RNN(Module):
             h[0] = h0
         # Use the recurrence relation defined by forward_step to update the states trough time.
         for t in range(0, X.shape[self.t_dim]):
-            IPython.embed(using=False)
 
             # W x 
             h[t + 1] = self.nonlinearity.forward(np.dot(X[t], self.Wxh.data.T) + np.dot(h[t], self.Whh.data.T) + self.b.data)
@@ -130,29 +129,29 @@ class RNN(Module):
         dh_prev = dh @ self.Whh.data.T  # self.Whh.data @ dh.T
         return dh_prev
 
-    def backward_old_broken(self, dout):
-        """Backpropagate the gradient computed at the output (dout) through the network.
+    def backward_old_broken(self, delta):
+        """Backpropagate the gradient computed at the output (delta) through the network.
         Accumulate the parameter gradients for `Whx` and `Whh` by for each layer by addition.
         Return the parameter gradients as a tuple, and the gradients at the output of each layer.
         """
         # Initialise the array that stores the gradients of the cost with respect to the states.
         dh = np.zeros((self.X.shape[self.t_dim] + 1, self.X.shape[self.n_dim], self.hidden_size))
-        dh[-1] = dout
+        dh[-1] = delta
         for t in range(self.X.shape[self.t_dim], 0, -1):
             dh[t - 1, :] = self.backward_step_old_broken(dh[t, :], self.X[t - 1, :], self.h[t - 1, :])
         return dh
 
-    def backward(self, dout):
-        """Backpropagate the gradient computed at the output (dout) through the network.
+    def backward(self, delta):
+        """Backpropagate the gradient computed at the output (delta) through the network.
         Accumulate the parameter gradients for `Whx` and `Whh` by for each layer by addition.
         Return the parameter gradients as a tuple, and the gradients at the output of each layer.
         """
         # http://www.wildml.com/2015/10/recurrent-neural-networks-tutorial-part-3-backpropagation-through-time-and-vanishing-gradients/
         # Initialise the array that stores the gradients of the cost with respect to the states.
         # dh = np.zeros((self.X.shape[self.t_dim] + 1, self.X.shape[self.n_dim], self.hidden_size))
-        # dh[-1] = dout
-        dh_t = dout
-        dLdz = dout
+        # dh[-1] = delta
+        dh_t = delta
+        dLdz = delta
         for t in range(self.X.shape[self.t_dim], 0, -1):
 
             # IPython.embed()
@@ -395,11 +394,11 @@ class LSTM(Module):
 
         return dh_next, dc_next
 
-    def backward(self, dout):
+    def backward(self, delta):
         # https://wiseodd.github.io/techblog/2016/08/12/lstm-backprop/
         # https://gist.github.com/karpathy/d4dee566867f8291f086
 
-        dh_next = dout
+        dh_next = delta
         dc_next = np.zeros_like(dh_next)
         for t in range(len(self.cache['hx']) - 1, 0, -1):
             dh_next, dc_next = self.backward_step(dh_next, dc_next, t)
