@@ -28,7 +28,8 @@ class RNNClassifier(nn.Module):
         super(RNNClassifier, self).__init__()
 
         self.input_size = input_size
-        self.add_module("RNN_0", nn.RNN(input_size, hidden_dims[0], bias=True))
+        # self.add_module("RNN_0", nn.RNN(input_size, hidden_dims[0], bias=True))
+        self.add_module("RNN_0", nn.LSTM(input_size, hidden_dims[0], bias=True))
         # self.add_module("Linear0", nn.Linear(hidden_dims[0], hidden_dims[1], bias=True))
         self.add_module("Linear_0", nn.Linear(hidden_dims[0], out_classes, bias=True))
         self.add_module("Softmax_0", nn.Softmax())
