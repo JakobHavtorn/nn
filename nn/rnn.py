@@ -21,7 +21,7 @@ class RNN(Module):
         D:  input dimension
         T:  input sequence length
         H:  hidden dimension
-    
+
     Parameters
     ----------
     input_size : [type]
@@ -39,18 +39,21 @@ class RNN(Module):
     """
 
 
-    def __init__(self, input_size, hidden_size, bias=True, nonlinearity=Tanh(), time_first=True, bptt_truncate=0):
+    def __init__(self, input_size, hidden_size, output_size, bias=True, nonlinearity=Tanh(), time_first=True, bptt_truncate=0):
         super(RNN, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.nonlinearity = nonlinearity
         self.bptt_truncate = bptt_truncate
-        self.W = Parameter(np.zeros((hidden_size, hidden_size)))
-        self.U = Parameter(np.zeros((hidden_size, input_size)))
+        self.Wxh = Parameter(np.zeros((hidden_size, input_size)))
+        self.Whh = Parameter(np.zeros((hidden_size, hidden_size)))
+        self.Why = Parameter(np.zeros((output_size, hidden_size)))
         if bias:
-            self.b = Parameter(np.zeros(hidden_size))
+            self.bh = Parameter(np.zeros(hidden_size))
+            self.by = Parameter(np.zeros(output_size))
         else:
-            self.b = None
+            self.bh = None
+            self.by = None
         self.time_first = time_first
         if time_first:
             self.t_dim = 0
@@ -65,10 +68,13 @@ class RNN(Module):
     def reset_parameters(self):
         stdhh = np.sqrt(1. / self.hidden_size)
         stdhx = np.sqrt(1. / self.input_size)
-        self.W.data = np.random.uniform(-stdhh, stdhh, size=(self.hidden_size, self.hidden_size))
-        self.U.data = np.random.uniform(-stdhx, stdhx, size=(self.hidden_size, self.input_size))
-        if self.b is not None:
-            self.b.data = np.zeros(self.hidden_size)
+        stdhy = np.sqrt(1. / self.output_size)
+        self.Wxh.data = np.random.uniform(-stdhx, stdhx, size=(self.hidden_size, self.input_size))
+        self.Whh.data = np.random.uniform(-stdhh, stdhh, size=(self.hidden_size, self.hidden_size))
+        self.Why.data = np.random.uniform(-stdhy, stdhy, size=(self.output_size, self.hidden_size))
+        if self.bh is not None:
+            self.bh.data = np.zeros(self.hidden_size)
+            self.by.data = np.zeros(self.output_size)
 
     def forward_step(self, x, h):
         """Compute state k from the previous state (sk) and current input (xk),
@@ -76,9 +82,9 @@ class RNN(Module):
         """
         # import IPython
         # IPython.embed()
-        return self.nonlinearity.forward(h @ self.W.data.T + x @ self.U.data.T + self.b.data)
+        return self.nonlinearity.forward(h @ self.Whh.data.T + x @ self.Wxh.data.T + self.b.data)
 
-    def forward(self, X):
+    def forward(self, X, h0=None):
         """Unfold the network and compute all state activations given the input X,
         and input weights (wx) and recursive weights (wRec).
         Return the state activations in a matrix, the last column S[:,-1] contains the
@@ -89,26 +95,39 @@ class RNN(Module):
         if not self.time_first:
             X = X.transpose(self.n_dim, self.t_dim, self.n_dim)  # [N, T, D] --> [T, N, D]
         h = np.zeros((X.shape[self.t_dim] + 1, X.shape[self.n_dim], self.hidden_size))  # (T, N, H)
+        if h0:
+            h[0] = h0
         # Use the recurrence relation defined by forward_step to update the states trough time.
         for t in range(0, X.shape[self.t_dim]):
-            h[t + 1] = self.forward_step(X[t, :], h[t])
+            IPython.embed(using=False)
+
+            # W x 
+            h[t + 1] = self.nonlinearity.forward(np.dot(X[t], self.Wxh.data.T) + np.dot(h[t], self.Whh.data.T) + self.b.data)
+            
+            # h[t + 1] = self.forward_step(X[t, :], h[t])
+
+            # np.dot(self.Wxh.data, X[t][5])
+            # np.dot(X[t], self.Wxh.data.T)
+
         # Cache
         self.X = X
         self.h = h
-        return h[-1]
+        return h
 
     def backward_step_old_broken(self, dh, x_cache, h_cache):
         """Compute a single backwards time step.
         """
+        # https://gist.github.com/karpathy/d4dee566867f8291f086
+
         # Activation
         dh = self.nonlinearity.backward(dh, h_cache)
         # Gradient of the linear layer parameters (accumulate)
-        self.W.grad += dh.T @ h_cache  # np.outer(dh, h_cache)
-        self.U.grad += dh.T @ x_cache  # np.outer(dh, x_cache)
+        self.Whh.grad += dh.T @ h_cache  # np.outer(dh, h_cache)
+        self.Wxh.grad += dh.T @ x_cache  # np.outer(dh, x_cache)
         if self.b is not None:
             self.b.grad += dh.sum(axis=0)
         # Gradient at the output of the previous layer
-        dh_prev = dh @ self.W.data.T  # self.W.data @ dh.T
+        dh_prev = dh @ self.Whh.data.T  # self.Whh.data @ dh.T
         return dh_prev
 
     def backward_old_broken(self, dout):
@@ -136,7 +155,7 @@ class RNN(Module):
         dLdz = dout
         for t in range(self.X.shape[self.t_dim], 0, -1):
 
-            IPython.embed()
+            # IPython.embed()
             # Initial delta calculation: dL/dz (TODO Don't really care about this)
             # dLdz = self.V.T.dot(delta_o[t]) * (1 - (self.h[t] ** 2))   # (1 - (self.h[t] ** 2)) is Tanh()
             dh_t = self.nonlinearity.backward(dh_t, self.h[t])
@@ -144,12 +163,12 @@ class RNN(Module):
             for bptt_step in np.arange(max(0, t - self.bptt_truncate), t + 1)[::-1]:  # TODO Can we maybe vectorize this loop?
                 # print &quot;Backpropagation step t=%d bptt step=%d &quot; % (t, bptt_step)
                 # Add to gradients at each previous step
-                self.W.grad += np.einsum('NH,iNH->NH', dh_t, self.h[bptt_step - 1])
-                # self.W.grad += np.outer(dh_t, self.h[bptt_step - 1])
-                self.U.grad[:, self.X[bptt_step]] += dh_t
-                # self.U.grad[:, self.X[bptt_step]] += dLdz  # TODO Really want dh/dU
+                self.Whh.grad += np.einsum('NH,iNH->NH', dh_t, self.h[bptt_step - 1])
+                # self.Whh.grad += np.outer(dh_t, self.h[bptt_step - 1])
+                self.Wxh.grad[:, self.X[bptt_step]] += dh_t
+                # self.Wxh.grad[:, self.X[bptt_step]] += dLdz  # TODO Really want dh/dU
                 # Update delta for next step dL/dz at t-1
-                dh_t = self.nonlinearity.backward(self.W.data.T.dot(dh_t), self.h[bptt_step-1])  # (1 - self.h[bptt_step-1] ** 2)
+                dh_t = self.nonlinearity.backward(self.Whh.data.T.dot(dh_t), self.h[bptt_step-1])  # (1 - self.h[bptt_step-1] ** 2)
 
 
             # dh[t - 1, :] = self.backward_step(dh[t, :], self.X[t - 1, :], self.h[t - 1, :])
@@ -164,9 +183,9 @@ class RNN(Module):
         # Perform forward propagation
         o, s = self.forward_propagation(x)
         # We accumulate the gradients in these variables
-        dLdU = np.zeros(self.U.shape)
+        dLdU = np.zeros(self.Wxh.shape)
         dLdV = np.zeros(self.V.shape)
-        dLdW = np.zeros(self.W.shape)
+        dLdW = np.zeros(self.Whh.shape)
         delta_o = o
         delta_o[np.arange(len(y)), y] -= 1.
         # For each output backwards...
@@ -181,7 +200,7 @@ class RNN(Module):
                 dLdW += np.outer(delta_t, s[bptt_step - 1])              
                 dLdU[:, x[bptt_step]] += delta_t
                 # Update delta for next step dL/dz at t-1
-                delta_t = self.W.data.T.dot(delta_t) * (1 - s[bptt_step-1] ** 2)
+                delta_t = self.Whh.data.T.dot(delta_t) * (1 - s[bptt_step-1] ** 2)
         return [dLdU, dLdV, dLdW]
 
 
@@ -318,6 +337,7 @@ class LSTM(Module):
         hc = self.cache['hc'][t]
         c = self.cache['c'][t]
         c_old = self.cache['c_old'][t]
+        IPython.embed()
 
         # # Softmax loss gradient
         # dy = prob.copy()
@@ -377,6 +397,7 @@ class LSTM(Module):
 
     def backward(self, dout):
         # https://wiseodd.github.io/techblog/2016/08/12/lstm-backprop/
+        # https://gist.github.com/karpathy/d4dee566867f8291f086
 
         dh_next = dout
         dc_next = np.zeros_like(dh_next)
