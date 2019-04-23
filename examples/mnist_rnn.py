@@ -51,7 +51,7 @@ class RNNClassifier(nn.Module):
         # Feed each row as a vector to RNN
         # assert x.shape[0] == 1, "Only supports batches of 1 example"
         x = x.reshape(self.input_size, x.shape[0], -1)
-        x = self.RNN_0.forward(x)
+        x = self.RNN_0.forward(x)[-1]
         # import IPython
         # IPython.embed()
         x = self.Linear_0.forward(x)

@@ -44,17 +44,15 @@ class RNN(Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.nonlinearity = nonlinearity
+        self.time_first = time_first
         self.bptt_truncate = bptt_truncate
         self.Wxh = Parameter(np.zeros((hidden_size, input_size)))
         self.Whh = Parameter(np.zeros((hidden_size, hidden_size)))
         self.Why = Parameter(np.zeros((output_size, hidden_size)))
         if bias:
-            self.bh = Parameter(np.zeros(hidden_size))
-            self.by = Parameter(np.zeros(output_size))
+            self.b = Parameter(np.zeros(hidden_size))
         else:
-            self.bh = None
-            self.by = None
-        self.time_first = time_first
+            self.b = None
         if time_first:
             self.t_dim = 0
             self.n_dim = 1
@@ -68,20 +66,15 @@ class RNN(Module):
     def reset_parameters(self):
         stdhh = np.sqrt(1. / self.hidden_size)
         stdhx = np.sqrt(1. / self.input_size)
-        stdhy = np.sqrt(1. / self.output_size)
         self.Wxh.data = np.random.uniform(-stdhx, stdhx, size=(self.hidden_size, self.input_size))
         self.Whh.data = np.random.uniform(-stdhh, stdhh, size=(self.hidden_size, self.hidden_size))
-        self.Why.data = np.random.uniform(-stdhy, stdhy, size=(self.output_size, self.hidden_size))
-        if self.bh is not None:
-            self.bh.data = np.zeros(self.hidden_size)
-            self.by.data = np.zeros(self.output_size)
+        if self.b is not None:
+            self.b.data = np.zeros(self.hidden_size)
 
     def forward_step(self, x, h):
         """Compute state k from the previous state (sk) and current input (xk),
         by use of the input weights (wx) and recursive weights (wRec).
         """
-        # import IPython
-        # IPython.embed()
         return self.nonlinearity.forward(h @ self.Whh.data.T + x @ self.Wxh.data.T + self.b.data)
 
     def forward(self, X, h0=None):
@@ -99,15 +92,10 @@ class RNN(Module):
             h[0] = h0
         # Use the recurrence relation defined by forward_step to update the states trough time.
         for t in range(0, X.shape[self.t_dim]):
-
-            # W x 
             h[t + 1] = self.nonlinearity.forward(np.dot(X[t], self.Wxh.data.T) + np.dot(h[t], self.Whh.data.T) + self.b.data)
-            
             # h[t + 1] = self.forward_step(X[t, :], h[t])
-
             # np.dot(self.Wxh.data, X[t][5])
             # np.dot(X[t], self.Wxh.data.T)
-
         # Cache
         self.X = X
         self.h = h
@@ -145,13 +133,16 @@ class RNN(Module):
         """Backpropagate the gradient computed at the output (delta) through the network.
         Accumulate the parameter gradients for `Whx` and `Whh` by for each layer by addition.
         Return the parameter gradients as a tuple, and the gradients at the output of each layer.
+
+        delta can be 
+            (N, H)    
+            (N, H, T) 
         """
         # http://www.wildml.com/2015/10/recurrent-neural-networks-tutorial-part-3-backpropagation-through-time-and-vanishing-gradients/
         # Initialise the array that stores the gradients of the cost with respect to the states.
         # dh = np.zeros((self.X.shape[self.t_dim] + 1, self.X.shape[self.n_dim], self.hidden_size))
         # dh[-1] = delta
         dh_t = delta
-        dLdz = delta
         for t in range(self.X.shape[self.t_dim], 0, -1):
 
             # IPython.embed()
