@@ -17,7 +17,7 @@ Forward propagation
 $$
 \mathbf{z} = \mathbf{Wx} + \mathbf{b}
 $$
-where $\mathbf{x}\in \mathbb{R}^D​$, $\mathbf{z}\in\mathbb{R}^{H}​$,  $\mathbf{W}\in\mathbb{R}^{H\times D}​$ and $\mathbf{b}\in\mathbb{R}^{H}​$.
+where $\mathbf{x}\in \mathbb{R}^D$, $\mathbf{z}\in\mathbb{R}^{H}$,  $\mathbf{W}\in\mathbb{R}^{H\times D}$ and $\mathbf{b}\in\mathbb{R}^{H}$.
 
 Gradients 
 $$
@@ -56,6 +56,8 @@ $$
 \frac{\partial L}{\partial\mathbf{x}_1} = \delta_{out} \mathbf{Wx}_2 \in\mathbb{R}^{H \times (H \times D_1 \times D_2) \times D_2} = \mathbb{R}^{D_2}\\
 \frac{\partial L}{\partial\mathbf{x}_2} = \delta_{out} \mathbf{W}^T\mathbf{x}_1 \in\mathbb{R}^{H \times (H \times D_2 \times D_1) \times D_1} = \mathbb{R}^{D_1}\\
 $$
+
+https://github.com/pytorch/pytorch/blob/5bb13485b8484a37f9afad67582512cf53ed13cb/torch/nn/_functions/linear.py
 
 ## Recurrent layer
 
