@@ -124,7 +124,10 @@ class BiLinear(Module):
         x1, x2, dzdx1 = self.cache['x1'], self.cache['x2'], self.cache['dzdx1']
         if x2 is None:
             x2 = x1
+
+        print('Debuggin Bilinear')
         IPython.embed()
+
         self.W.grad += np.einsum('bi,bj->ij', x1, x2)
         if self.b is not None:
             self.b.grad += delta.sum(axis=0)

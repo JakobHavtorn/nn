@@ -653,11 +653,11 @@ def checkSequentialMatchesBatch():
       dh0 = dhprev
 
   # and make sure the gradients match
-  print 'Making sure batched version agrees with sequential version: (should all be True)'
-  print np.allclose(BdX, dX)
-  print np.allclose(BdWLSTM, dWLSTM)
-  print np.allclose(Bdc0, dc0)
-  print np.allclose(Bdh0, dh0)
+  print('Making sure batched version agrees with sequential version: (should all be True)')
+  print(np.allclose(BdX, dX))
+  print(np.allclose(BdWLSTM, dWLSTM))
+  print(np.allclose(Bdc0, dc0))
+  print(np.allclose(Bdh0, dh0))
   
 
 def checkBatchGradient():
@@ -718,13 +718,12 @@ def checkBatchGradient():
         if rel_error > rel_error_thr_error: status = '!!!!! NOTOK'
 
       # print stats
-      print '%s checking param %s index %s (val = %+8f), analytic = %+8f, numerical = %+8f, relative error = %+8f' \
-            % (status, name, `np.unravel_index(i, mat.shape)`, old_val, grad_analytic, grad_numerical, rel_error)
+      print('%s checking param %s index %s (val = %+8f), analytic = %+8f, numerical = %+8f, relative error = %+8f'.format(
+          status, name, np.unravel_index(i, mat.shape), old_val, grad_analytic, grad_numerical, rel_error))
 
 
 if __name__ == "__main__":
-
   checkSequentialMatchesBatch()
   raw_input('check OK, press key to continue to gradient check')
   checkBatchGradient()
-  print 'every line should start with OK. Have a nice day!'
+  print('every line should start with OK. Have a nice day!')

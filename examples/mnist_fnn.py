@@ -33,7 +33,7 @@ class FNNClassifier(nn.Module):
                 self.add_module('dropout_' + str(i), nn.Dropout(p=dropout))
             if i > 0:
                 self.add_module('activation_' + str(i), activation())
-            self.add_module('linear_' + str(i), nn.BiLinear(dims[i], dims[i], dims[i+1], bias=True))
+            self.add_module('linear_' + str(i), nn.Linear(dims[i], dims[i+1], bias=True))
         self.add_module('activation_' + str(i+1), nn.Softmax())
 
     def forward(self, x):
