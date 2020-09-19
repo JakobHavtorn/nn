@@ -9,12 +9,12 @@ class Linear(Module):
     """Linear module which performs an affine transformation.
 
     The forward transformation is
-        y = x * W + b
+        Y = XW' + b
     with the following dimensions
-        x:  (N, *, I)
-        W:  (I, O)
+        X:  (N, *, I)
+        W:  (O, I)
         b:  (O)
-        y:  (N, *, O)
+        Y:  (N, *, O)
     where * means any number of additional dimensions.
 
     Parameters

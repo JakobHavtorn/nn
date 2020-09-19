@@ -240,7 +240,7 @@ class Module():
             del self._modules[name]
         else:
             object.__delattr__(self, name)
-    
+
     def reset_parameters(self):
         raise NotImplementedError()
 
