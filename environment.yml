@@ -8,5 +8,6 @@ dependencies:
 - torchvision
 - sklearn
 - pandas
+- cython
 - matplotlib
 - ipython

@@ -8,6 +8,10 @@ from torchvision import datasets, transforms
 from utils.constants import DATA_DIR
 
 
+def compute_convolution_out_shape(input, kernel, padding, stride, dilation):
+    return # TODO
+
+
 def onehot(t, num_classes):
     out = np.zeros((t.shape[0], num_classes), dtype=np.float32)
     for row, col in enumerate(t):

@@ -179,8 +179,8 @@ The above FNN classifier without batchnorm and dropout as well as the CNN classi
 |               |  FNN |          | CNN  |          |
 | ------------- | ---- | -------- | ---- | -------- |
 | Data set      | Loss | Accuracy | Loss | Accuracy |
-| Training      | 0.01 | 99.97%   | 0.02 | 99.42%   |
-| Validation    | 0.07 | 97.95%   | 0.04 | 98.79%   |
+| Training      | 0.01 | 99.97%   | 0.02 | 99.31%   |
+| Validation    | 0.07 | 97.95%   | 0.04 | 99.63%   |
 
 The learning curves are seen below.
 

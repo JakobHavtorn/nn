@@ -38,7 +38,6 @@ class RNN(Module):
         [description]
     """
 
-
     def __init__(self, input_size, hidden_size, output_size, bias=True, nonlinearity=Tanh(), time_first=True, bptt_truncate=0):
         super(RNN, self).__init__()
         self.input_size = input_size
@@ -150,7 +149,7 @@ class RNN(Module):
             # dLdz = self.V.T.dot(delta_o[t]) * (1 - (self.h[t] ** 2))   # (1 - (self.h[t] ** 2)) is Tanh()
             dh_t = self.nonlinearity.backward(dh_t, self.h[t])
             # Backpropagation through time (for at most self.bptt_truncate steps)
-            for bptt_step in np.arange(max(0, t - self.bptt_truncate), t + 1)[::-1]:  # TODO Can we maybe vectorize this loop?
+            for bptt_step in np.arange(max(0, t - self.bptt_truncate), t + 1)[::-1]:
                 # print &quot;Backpropagation step t=%d bptt step=%d &quot; % (t, bptt_step)
                 # Add to gradients at each previous step
                 self.Whh.grad += np.einsum('NH,iNH->NH', dh_t, self.h[bptt_step - 1])
@@ -159,7 +158,6 @@ class RNN(Module):
                 # self.Wxh.grad[:, self.X[bptt_step]] += dLdz  # TODO Really want dh/dU
                 # Update delta for next step dL/dz at t-1
                 dh_t = self.nonlinearity.backward(self.Whh.data.T.dot(dh_t), self.h[bptt_step-1])  # (1 - self.h[bptt_step-1] ** 2)
-
 
             # dh[t - 1, :] = self.backward_step(dh[t, :], self.X[t - 1, :], self.h[t - 1, :])
         return dh_t
@@ -244,6 +242,7 @@ class LSTM(Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        # TODO Add orthogonal initialization
         D = self.input_size
         H = self.hidden_size
         Z = D + H  # Concatenation
