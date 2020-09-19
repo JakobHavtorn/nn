@@ -1,8 +1,12 @@
 class Evaluator:
-    def __init__(self):
+    def __init__(self, evaluation_metric):
         """Initialize the evaluator
         """
-        pass
+        self.evaluation_metric_name = evaluation_metric
+
+    @property
+    def evaluation_metric(self):
+        return getattr(self, self.evaluation_metric_name)
 
     def update(self, predictions=None, labels=None, loss=None):
         raise NotImplementedError

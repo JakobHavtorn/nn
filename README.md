@@ -6,6 +6,14 @@ The overall modular structure is inspired by that of [PyTorch](https://pytorch.o
 
 Conversely to PyTorch, the backwards and forward pass of any module is explicitly coded in Python using NumPy rather than in a C backend. This is obviously not competitive on performance, but served as nice personal exercises in deriving and implementing backpropagation for a range of different network layers. All code executes exclusively on the CPU.
 
+
+## Installation
+
+```bash
+conda env create -f environment.yml
+```
+
+
 ### Structure
 - `examples`: This folder contains examples of code used to train different networks on data. The models are defined in `models.py`, the data from `torchvision``torchvision` is part of PyTorch and contains among other things datasets for computer vision and data loader classes. is loaded using the method from `loaders.py`. Current examples are `mnist\_fnn.py` and `mnist\_cnn.py`.
 - `nn`: This folder holds the main network modules. The names of the contained files are self-descriptive; for instance, the affine (linear) transformation of the FNN is defined as a class in `linear.py`. All modules are subclasses of the `Module` base class which defines common behaviour.
@@ -13,60 +21,63 @@ Conversely to PyTorch, the backwards and forward pass of any module is explicitl
 - `utils`: Contains some utilities for the package most importantly the `Solver` class in `solver.py` which can train a classifier. `utils` also includes a progress bar and a method for onehot encoding a target label.
 
 ## Installation
-To install, execute the bash script below
+```bash
+pip install --upgrade --editable .
+```
+
+or
 
 ```bash
-git clone git@github.com:ericmjl/conda-envs.git
-cd nn
 conda env create -f environment.yml
-cd nn
-python setup.py build_ext --inplace
 ```
 
 ## Implemented modules
 Currently implemented modules are
+
 - Linear layers
-    - [Linear](https://pytorch.org/docs/stable/nn.html#linear)
+  - [Linear](https://pytorch.org/docs/stable/nn.html#linear)
 - Dropout layers
-    - [Dropout1D](https://pytorch.org/docs/stable/nn.html#dropout)
+  - [Dropout1D](https://pytorch.org/docs/stable/nn.html#dropout)
 - Normalization layers
-    - [BatchNorm1D](https://pytorch.org/docs/stable/nn.html#batchnorm1d)
+  - [BatchNorm1D](https://pytorch.org/docs/stable/nn.html#batchnorm1d)
 - Convolutional layers
-    - [2 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv2d)
+  - [2 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv2d)
 - Pooling layers
-    - [2 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
-    - [2 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
+  - [2 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
+  - [2 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
 - Activations
-    - [Sigmoid](https://pytorch.org/docs/stable/nn.html#sigmoid)
-    - [Tanh](https://pytorch.org/docs/stable/nn.html#tanh)
-    - [ReLU](https://pytorch.org/docs/stable/nn.html#relu)
-    - [Softplus](https://pytorch.org/docs/stable/nn.html#softplus)
-    - [Softmax](https://pytorch.org/docs/stable/nn.html#softmax)
+  - [Sigmoid](https://pytorch.org/docs/stable/nn.html#sigmoid)
+  - [Tanh](https://pytorch.org/docs/stable/nn.html#tanh)
+  - [ReLU](https://pytorch.org/docs/stable/nn.html#relu)
+  - [Softplus](https://pytorch.org/docs/stable/nn.html#softplus)
+  - [Softmax](https://pytorch.org/docs/stable/nn.html#softmax)
 - Losses
-    - [Mean squared loss (MSE)](https://pytorch.org/docs/stable/nn.html#mseloss)
-    - [Categorical cross entropy loss (CCEL)](https://pytorch.org/docs/stable/nn.html#crossentropyloss)
+  - [Mean squared loss (MSE)](https://pytorch.org/docs/stable/nn.html#mseloss)
+  - [Categorical cross entropy loss (CCEL)](https://pytorch.org/docs/stable/nn.html#crossentropyloss)
 
 ## Implementation roadmap
 Optimization algorithms
+
 - Adam
 - Implementation of weight decay according to http://arxiv.org/abs/1711.05101 and not as L2 regularization term added to gradient
 
 Layers on the roadmap for implementation are
+
 - Convolutional layers
-    - [1 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv1d)
-    - [3 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv3d)
+  - [1 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv1d)
+  - [3 dimensional convolution](https://pytorch.org/docs/stable/_modules/torch/nn/modules/conv.html#Conv3d)
 - Pooling layers
-    - [1 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
-    - [1 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
-    - [3 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
-    - [3 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
+  - [1 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
+  - [1 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
+  - [3 dimensional max pooling](https://pytorch.org/docs/stable/nn.html#maxpool1d)
+  - [3 dimensional average pooling](https://pytorch.org/docs/stable/nn.html#avgpool1d)
 - Dropout layers
-    - [2 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout2d)
-    - [3 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout3d)
+  - [2 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout2d)
+  - [3 dimensional dropout](https://pytorch.org/docs/stable/_modules/torch/nn/modules/dropout.html#Dropout3d)
 - Recurrent layers
-    - [RNN](https://pytorch.org/docs/stable/nn.html#rnn)
-    - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
-    - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
+  - [RNN](https://pytorch.org/docs/stable/nn.html#rnn)
+  - [LSTM](https://pytorch.org/docs/stable/nn.html#lstm)
+  - [GRU](https://pytorch.org/docs/stable/nn.html#gru)
 
 ## Other things to do
 - Refactor the Trainer class so that experiments define their own training loop and we use an Evaluator class to keep track of metrics instead.
@@ -80,10 +91,12 @@ The class should have the required `forward` and `backward` methods that define 
 
 ### FNN example
 Below is an example of how to construct an FNN classifier. The classifier has
+
 - variable input and output dimensions
 - variable number of hidden layers and dimensions
 - specifiable activation function
 - potential batchnorm and dropout layers
+
 ```python
 class FNNClassifier(nn.Module):
     def __init__(self, in_features, out_classes, hidden_dims=[256, 128, 64], activation=nn.ReLU, batchnorm=False, dropout=False):
@@ -107,18 +120,21 @@ class FNNClassifier(nn.Module):
             x = module.forward(x)
         return x
 
-    def backward(self, dout):
+    def backward(self, delta):
         for module in reversed(self._modules.values()):
-            dout = module.backward(dout)
+            delta = module.backward(delta)
 ``` 
 
 ### CNN example
 Below is an example of how to construct an CNN classifier. The classifier has
+
 - variable input and output dimensions
 - variable number of hidden layers and dimensions
 - specifiable activation function
 - potential batchnorm and dropout layers
+
 For this classifier however, changing the convolutional layers require a corresponding change to the fully connected classifier layers. Alternatively, a completely convolutional model could be created.
+
 ```python
 class CNNClassifier(nn.Module):
     def __init__(self, in_features, out_classes, feature_maps=[16, 32], hidden_dims=[512], activation=nn.ReLU, batchnorm=False, dropout=False):
@@ -150,9 +166,9 @@ class CNNClassifier(nn.Module):
             x = module.forward(x)
         return x
 
-    def backward(self, dout):
+    def backward(self, delta):
         for module in reversed(self._modules.values()):
-            dout = module.backward(dout)
+            delta = module.backward(delta)
 ```
 
 ## Training example
@@ -163,8 +179,8 @@ The above FNN classifier without batchnorm and dropout as well as the CNN classi
 |               |  FNN |          | CNN  |          |
 | ------------- | ---- | -------- | ---- | -------- |
 | Data set      | Loss | Accuracy | Loss | Accuracy |
-| Training      | 0.01 | 99.97%   | 0.02 | 99.42%   |
-| Validation    | 0.07 | 97.95%   | 0.04 | 98.79%   |
+| Training      | 0.01 | 99.97%   | 0.02 | 99.31%   |
+| Validation    | 0.07 | 97.95%   | 0.04 | 99.63%   |
 
 The learning curves are seen below.
 

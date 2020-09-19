@@ -101,18 +101,18 @@ class Conv2D(Module):
         self.cache = dict(X_shape=X.shape, X_col=X_col)
         return S
 
-    def backward(self, dout):
+    def backward(self, delta):
         X_shape, X_col = self.cache['X_shape'], self.cache['X_col']
         N, C, H, W = X_shape
         # Bias gradient
         if self.b is not None:
-            self.b.grad += np.sum(dout, axis=(0, 2, 3)).reshape(self.out_channels, -1)
+            self.b.grad += np.sum(delta, axis=(0, 2, 3)).reshape(self.out_channels, -1)
         # Kernel gradient
-        dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(self.out_channels, -1)
-        self.K.grad += (dout_reshaped @ X_col.T).reshape(self.K.shape)
+        delta_reshaped = delta.transpose(1, 2, 3, 0).reshape(self.out_channels, -1)
+        self.K.grad += (delta_reshaped @ X_col.T).reshape(self.K.shape)
         # Input gradient
         K_col = self.K.data.reshape(self.out_channels, -1)
-        dX_col = K_col.T @ dout_reshaped
+        dX_col = K_col.T @ delta_reshaped
         dX = col2im_cython(dX_col, N, C, H, W, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
         # dX = col2im_indices(dX_col, X_shape, self.kernel_size[0], self.kernel_size[1], padding=self.padding, stride=self.stride)
         self.reset_cache()

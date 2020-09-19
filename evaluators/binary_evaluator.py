@@ -6,15 +6,18 @@ from .evaluator import Evaluator
 
 
 class BinaryEvaluator(Evaluator):
-    def __init__(self):
+    def __init__(self, evaluation_metric='recall'):
         """
         Initialize a BinaryEvaluator.
 
         The BinaryEvaluator is an evaluator to be used for binary classification tasks which can be formulated in terms
         of a detection. For this purpose, the evaluator implements methods for finding an optimal decision boundary
         while keeping the TPR or the FPR fixed.
+
+        Args:
+            evaluation_metric (str): The attribute to use for evaluation.
         """
-        super().__init__(self)
+        super().__init__(self, evaluation_metric)
 
     def update(self, probabilities, labels, loss):
         """

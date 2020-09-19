@@ -36,7 +36,7 @@ class BatchNorm1D(Module):
         self.reset_parameters()
 
     def __str__(self):
-        return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine}'
+        return f'BatchNorm({self.num_features:d}, momentum={self.momentum:3.2f}, affine={self.affine})'
 
     def reset_running_stats(self):
         if self.momentum == 0.0:
@@ -87,10 +87,10 @@ class BatchNorm1D(Module):
         self.update_cache(x, x_norm, batch_mean, batch_var)
         return x_out
 
-    def backward(self, dout):
+    def backward(self, delta):
         x, batch_mean, batch_var = self.cache['x'], self.cache['batch_mean'], self.cache['batch_var']
-        N, _ = dout.shape
-        dx_norm = dout * self.gamma.data
+        N, _ = delta.shape
+        dx_norm = delta * self.gamma.data
         dsample_var = np.sum(dx_norm * (x - batch_mean) * (-0.5) * (batch_var + self.eps)**(-1.5), axis=0)
 
         dsample_mean = np.sum(dx_norm * (-1/np.sqrt(batch_var + self.eps)) , axis=0) + dsample_var * ((np.sum(-2*(x - batch_mean))) / N)
@@ -98,6 +98,6 @@ class BatchNorm1D(Module):
         dx = dx_norm * (1/np.sqrt(batch_var + self.eps)) + dsample_var * (2*(x - batch_mean)/N) + dsample_mean/N
         if self.affine:
             x_norm = self.cache['x_norm']
-            self.beta.grad = np.sum(dout, axis=0)
-            self.gamma.grad = np.sum(dout * x_norm, axis=0)
+            self.beta.grad = np.sum(delta, axis=0)
+            self.gamma.grad = np.sum(delta * x_norm, axis=0)
         return dx

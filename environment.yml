@@ -1,8 +1,13 @@
-name: ml
+name: nn
 channels:
 - conda-forge
 dependencies:
-- python=3.7.2
+- python=3.8
 - numpy
+- torch
+- torchvision
+- sklearn
+- pandas
+- cython
 - matplotlib
 - ipython

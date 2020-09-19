@@ -4,7 +4,15 @@ import numpy as np
 from .module import Module
 
 
-class MeanSquaredLoss(Module):
+# TODO Add reduction methods somehow
+
+
+class Loss(Module):
+    def __init__(self, reduction=None):
+        self.reduction = reduction
+
+
+class MeanSquaredLoss(Loss):
     """Mean Squared Loss function for multiple regression.
 
     Shapes
@@ -16,14 +24,17 @@ class MeanSquaredLoss(Module):
     Output: float
         Scalar loss.
     """
+    def __init__(self, reduction=None):
+        super().__init__(reduction)
+
     def __str__(self): 
-        return "MeanSquaredLoss()"
+        return f'MeanSquaredLoss(reduction={self.reduction})'
 
     def forward(self, y, t):
-        N = y.shape[0]
-        errors = np.linalg.norm(y-t, 2, axis=0)
-        MSE = 0.5 * np.sum(errors**2) / N
-        return MSE
+        loss = 0.5 * ((y - t) ** 2)
+        if self.reduction is not None:
+            loss = self.reduction(loss)
+        return loss
 
     def backward(self, y, t):
         N = y.shape[0]
@@ -31,24 +42,30 @@ class MeanSquaredLoss(Module):
         return delta_out
 
 
-class CrossEntropyLoss(Module):
+class CrossEntropyLoss(Loss):
     """Cross Entropy Loss function for C class classification.
 
         Shapes
         ------
-        Input: 
+        Input:
             (N, C) where N is batch size and C is number of classes.
-        Target: 
+        Target:
             (N, C) where each row is a one-hot encoded vector
         Output: float
             Scalar loss.
     """
+    def __init__(self, reduction=None, eps=1e-8):
+        super().__init__(reduction)
+        self.eps = eps
 
     def __str__(self):
-        return "CrossEntropyLoss()"
+        return f'CrossEntropyLoss(reduction={self.reduction}, eps={self.eps})'
 
-    def forward(self, y, t, eps=1e-8):
-        return - np.mean(np.log(y[t.astype(bool)] + eps), axis=-1)
+    def forward(self, y, t):
+        loss = -np.log(y[t.astype(bool)] + self.eps)
+        if self.reduction is not None:
+            loss = self.reduction(loss)
+        return loss
 
     def backward(self, y, t):
         delta_out = (1.0 / y.shape[0]) * (y - t)

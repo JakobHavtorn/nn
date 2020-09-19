@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import numpy as np
 import torch
@@ -8,9 +9,13 @@ from torchvision import datasets, transforms
 from utils.constants import DATA_DIR
 
 
-def onehot(t, num_classes):
-    out = np.zeros((t.shape[0], num_classes), dtype=np.float32)
-    for row, col in enumerate(t):
+def compute_convolution_out_shape(input: int, kernel: int, padding: int, stride: int, dilation: int):
+    return # TODO
+
+
+def onehot(targets: List[int], num_classes: int):
+    out = np.zeros((targets.shape[0], num_classes), dtype=np.float32)
+    for row, col in enumerate(targets):
         out[row, col] = 1
     return out
 

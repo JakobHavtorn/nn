@@ -23,8 +23,8 @@ class Sigmoid(Activation):
         self.update_cache(a)
         return a
 
-    def backward(self, din):
-        a = self.cache['value']
+    def backward(self, din, cache=None):
+        a = self.cache['value'] if cache is None else cache
         return a * (1 - a) * din
 
 
@@ -43,8 +43,8 @@ class Tanh(Activation):
         self.update_cache(a)
         return a
 
-    def backward(self, din):
-        a = self.cache['value']
+    def backward(self, din, cache=None):
+        a = self.cache['value'] if cache is None else cache
         return (1 - a ** 2) * din
 
 
@@ -63,8 +63,8 @@ class ReLU(Activation):
         self.update_cache(a)
         return a
 
-    def backward(self, din):
-        a = self.cache['value']
+    def backward(self, din, cache=None):
+        a = self.cache['value'] if cache is None else cache
         return din * (a > 0).astype(a.dtype)
 
 
@@ -83,8 +83,8 @@ class Softplus(Activation):
         self.update_cache(g)
         return np.log(g)
 
-    def backward(self, din):
-        g = self.cache['value']
+    def backward(self, din, cache=None):
+        g = self.cache['value'] if cache is None else cache
         return din * 1 - g ** (-1)
 
 
@@ -104,5 +104,5 @@ class Softmax(Activation):
         a = x_exp / x_exp.sum(axis=-1, keepdims=True)
         return a
 
-    def backward(self, din):
+    def backward(self, din, cache=None):
         return din
