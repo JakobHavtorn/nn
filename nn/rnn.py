@@ -63,6 +63,7 @@ class RNN(Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        # TODO Add orthogonal initialization
         stdhh = np.sqrt(1. / self.hidden_size)
         stdhx = np.sqrt(1. / self.input_size)
         self.Wxh.data = np.random.uniform(-stdhx, stdhx, size=(self.hidden_size, self.input_size))

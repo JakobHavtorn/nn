@@ -10,8 +10,7 @@ class Activation(Module):
 
 class Sigmoid(Activation):
     def __init__(self):
-        """Sigmoid
-        """
+        """Sigmoid"""
         super().__init__()
         self.reset_cache()
 
@@ -30,8 +29,7 @@ class Sigmoid(Activation):
 
 class Tanh(Activation):
     def __init__(self):
-        """Tanh
-        """
+        """Tanh"""
         super().__init__()
         self.reset_cache()
 
@@ -50,8 +48,7 @@ class Tanh(Activation):
 
 class ReLU(Activation):
     def __init__(self):
-        """ReLU
-        """
+        """ReLU"""
         super().__init__()
         self.reset_cache()
 
@@ -59,19 +56,41 @@ class ReLU(Activation):
         return "ReLU()"
 
     def forward(self, x):
-        a = np.maximum(0, x)
+        a = x * (x > 0)
         self.update_cache(a)
         return a
 
     def backward(self, din, cache=None):
         a = self.cache['value'] if cache is None else cache
-        return din * (a > 0).astype(a.dtype)
+        return din * (a > 0)
+
+
+class LeakyReLU(Activation):
+    def __init__(self, negative_slope=0.01):
+        """LeakyReLU"""
+        super().__init__()
+        self.negative_slope = negative_slope
+        self.reset_cache()
+
+    def __str__(self):
+        return "LeakyReLU()"
+
+    def forward(self, x):
+        a1 = (x > 0) * x
+        a2 = (x <= 0) * x * self.negative_slope
+        self.update_cache(x)
+        return a1 + a2
+
+    def backward(self, din, cache=None):
+        x = self.cache['value'] if cache is None else cache
+        dout = din * (x > 0) + din * (x <= 0) * self.negative_slope
+        return dout
+
 
 
 class Softplus(Activation):
     def __init__(self):
-        """Softplus
-        """
+        """Softplus"""
         super().__init__()
         self.reset_cache()
 
@@ -90,8 +109,7 @@ class Softplus(Activation):
 
 class Softmax(Activation):
     def __init__(self):
-        """Softmax
-        """
+        """Softmax"""
         super().__init__()
         self.reset_cache()
 

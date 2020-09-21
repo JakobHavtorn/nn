@@ -3,6 +3,7 @@ import numpy as np
 
 from .module import Module
 from .parameter import Parameter
+from .initialization import kaiming_uniform
 
 
 class Linear(Module):
@@ -26,10 +27,11 @@ class Linear(Module):
     bias : bool, optional
         Whether or not to include a bias (the default is True)
     """
-    def __init__(self, in_features, out_features, bias=True):
+    def __init__(self, in_features, out_features, bias=True, initialization=kaiming_uniform):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
+        self.initialization = initialization
         self.W = Parameter(np.zeros([out_features, in_features]))
         if bias:
             self.b = Parameter(np.zeros(out_features))
@@ -42,10 +44,9 @@ class Linear(Module):
         return "Linear({:d}, {:d}, bias={})".format(self.in_features, self.out_features, self.b is not None)
 
     def reset_parameters(self):
-        stdv = 1.0 / np.sqrt(self.in_features)
-        self.W.data = np.random.uniform(-stdv, stdv, self.W.shape)
+        self.W.data = self.initialization(self.W)
         if self.b is not None:
-            self.b.data = np.random.uniform(-stdv, stdv, self.b.shape)
+            self.b.data = np.zeros(self.b.shape)
 
     def forward(self, x):
         z = np.dot(x, self.W.data.T)

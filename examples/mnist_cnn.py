@@ -25,7 +25,7 @@ class CNNClassifier(nn.Module):
     """
 
     def __init__(self, in_features, out_classes, feature_maps=[16, 32, 64], kernels=[(4, 4), (3, 3), (2, 2)], strides=[2, 2, 2],
-                 hidden_dims=[576], activation=nn.ReLU, batchnorm=False, dropout=False, maxpool=False):
+                 hidden_dims=[576], activation=nn.LeakyReLU, batchnorm=False, dropout=False, maxpool=False):
         super(CNNClassifier, self).__init__()
         # Convolutional layers
         feature_maps = [1, *feature_maps]
