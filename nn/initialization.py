@@ -49,7 +49,7 @@ def calculate_gain(nonlinearity, param=None):
         param: optional parameter for the non-linear function
 
     Examples:
-        >>> gain = nn.init.calculate_gain('leaky_relu', 0.2)  # leaky_relu with negative_slope=0.2
+        >>> gain = nn.initialization.calculate_gain('leaky_relu', 0.2)  # leaky_relu with negative_slope=0.2
     """
     linear_fns = ['linear', 'conv1d', 'conv2d', 'conv3d', 'conv_transpose1d', 'conv_transpose2d', 'conv_transpose3d']
     if nonlinearity in linear_fns or nonlinearity == 'sigmoid':
@@ -90,7 +90,7 @@ def xavier_uniform_(tensor, gain=1.):
 
     Examples:
         >>> w = np.empty(3, 5)
-        >>> nn.init.xavier_uniform_(w, gain=nn.init.calculate_gain('relu'))
+        >>> nn.initialization.xavier_uniform(w, gain=nn.initialization.calculate_gain('relu'))
     """
     fan_in, fan_out = _calculate_fan_in_and_fan_out(tensor)
     std = gain * math.sqrt(2.0 / float(fan_in + fan_out))
@@ -123,11 +123,57 @@ def kaiming_uniform(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu'):
 
     Examples:
         >>> w = np.empty(3, 5)
-        >>> nn.init.kaiming_uniform_(w, mode='fan_in', nonlinearity='relu')
+        >>> nn.initialization.kaiming_uniform(w, mode='fan_in', nonlinearity='relu')
     """
     fan = _calculate_correct_fan(tensor, mode)
     gain = calculate_gain(nonlinearity, a)
     std = gain / math.sqrt(fan)
     bound = math.sqrt(3.0) * std  # Calculate uniform bounds from standard deviation
     tensor = np.random.uniform(-bound, bound, size=tensor.shape)
+    return tensor
+
+def orthogonal(tensor, gain=1):
+    """Fills the input `Tensor` with a (semi) orthogonal matrix, as
+    described in `Exact solutions to the nonlinear dynamics of learning in deep
+    linear neural networks` - Saxe, A. et al. (2013). The input tensor must have
+    at least 2 dimensions, and for tensors with more than 2 dimensions the
+    trailing dimensions are flattened.
+
+    Args:
+        tensor: an n-dimensional `np.Array`, where n >= 2
+        gain: optional scaling factor
+
+    Examples:
+        >>> w = np.empty(3, 5)
+        >>> nn.initialization.orthogonal(w)
+    """
+    if tensor.ndimension() < 2:
+        raise ValueError("Only tensors with 2 or more dimensions are supported")
+
+    rows = tensor.shape[0]
+    cols = tensor.numel() // rows
+    flattened = tensor.new(rows, cols).normal_(0, 1)
+
+    if rows < cols:
+        flattened.t_()
+
+    # Compute the qr factorization
+    q, r = np.linalg.qr(tensor, mode='reduced')
+    # Make Q uniform according to https://arxiv.org/pdf/math-ph/0609050.pdf
+    d = np.diag(r, 0)
+    import IPython; IPython.embed()
+    ph = d.sign()
+    q *= ph
+
+    if rows < cols:
+        q = q.T
+        q.t_()
+
+    tensor.reshape(q.shape)
+    tensor = q.copy()
+    
+    # tensor.view_as(q).copy_(q)
+    # tensor.mul_(gain)
+    
+    tensor *= gain
     return tensor
